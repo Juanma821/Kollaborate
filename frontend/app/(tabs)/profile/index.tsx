@@ -1,11 +1,11 @@
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Feather from '@expo/vector-icons/Feather';
 import Octicons from '@expo/vector-icons/Octicons';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 

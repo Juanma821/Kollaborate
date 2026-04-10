@@ -18,7 +18,6 @@ export default function Token() {
   const currentData = selectedTab === 'received' ? receivedData : transferredData;
 
   return (
-    // Aplicamos el padding superior dinámicamente según el dispositivo
     <View style={[styles.container, { paddingTop: insets.top }]}>
       
       {/* Sección Saldo Actual */}
