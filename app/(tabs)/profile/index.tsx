@@ -1,9 +1,11 @@
+import { Link } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
-export default function Mailbox() {
+export default function Profile() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Buzon screen</Text>
+      <Text style={styles.text}>Perfil screen</Text>
+      <Link href="/(tabs)/profile/token" style={styles.button}>Go to token screen</Link>
     </View>
   );
 }
@@ -16,6 +18,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
+    color: '#fff',
+  },
+    button: {
+    fontSize: 20,
+    textDecorationLine: 'underline',
     color: '#fff',
   },
 });

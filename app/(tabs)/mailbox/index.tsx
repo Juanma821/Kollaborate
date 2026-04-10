@@ -1,11 +1,12 @@
 import { Link } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
-export default function Profile() {
+export default function Mailbox() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Perfil screen</Text>
-      <Link href="/token" style={styles.button}>Go to token screen</Link>
+      <Text style={styles.text}>Buzon screen</Text>
+      <Link href="/(tabs)/mailbox/mbnotify" style={styles.button}>Go to notification screen</Link>
+      <Link href="/(tabs)/mailbox/mbchat" style={styles.button}>Go to chat screen</Link>
     </View>
   );
 }
