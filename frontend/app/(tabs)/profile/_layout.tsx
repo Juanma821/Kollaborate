@@ -5,25 +5,32 @@ export default function ProfileLayout() {
     <Stack>
         <Stack.Screen name="index" options={{
            headerTitle: "Perfil",
+           headerTitleAlign: 'center',
            headerLeft: () => null }} />
 
         <Stack.Screen name="configuration" options={{
-           headerTitle: "Configuracion" }} />
+           headerTitle: "Configuracion",
+           headerTitleAlign: 'center' }} />
 
         <Stack.Screen name="skills" options={{
-           headerTitle: "Habilidades" }} />
+           headerTitle: "Habilidades",
+           headerTitleAlign: 'center' }} />
 
         <Stack.Screen name="editprofile" options={{
-           headerTitle: "Editar Perfil" }} />
+           headerTitle: "Editar Perfil",
+           headerTitleAlign: 'center' }} />
 
         <Stack.Screen name="statistics" options={{
-           headerTitle: "Estadisticas" }} />
+           headerTitle: "Estadisticas",
+           headerTitleAlign: 'center' }} />
 
         <Stack.Screen name="record" options={{
-           headerTitle: "Historial" }} />
+           headerTitle: "Historial",
+           headerTitleAlign: 'center' }} />
 
         <Stack.Screen name="token" options={{
-           headerTitle: "Token" }} />
+           headerTitle: "Token",
+           headerTitleAlign: 'center' }} />
 
     </Stack>
   );

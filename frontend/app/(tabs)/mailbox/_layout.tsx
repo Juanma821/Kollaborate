@@ -5,13 +5,16 @@ export default function MailboxLayout() {
     <Stack>
         <Stack.Screen name="index" options={{
              headerTitle: "Buzon",
-             headerLeft: () => null }} />
+             headerLeft: () => null,
+             headerTitleAlign: 'center' }} />
 
         <Stack.Screen name="mbnotify" options={{
-             headerTitle: "Solicitud" }} />
+             headerTitle: "Solicitud",
+             headerTitleAlign: 'center' }} />
 
         <Stack.Screen name="mbchat" options={{
-             headerTitle: "Chat" }} />
+             headerTitle: "Chat",
+             headerTitleAlign: 'center' }} />
 
     </Stack>
   );

@@ -6,6 +6,7 @@ export default function TabsLayout() {
     <Tabs screenOptions={{tabBarActiveTintColor: '#ff743dff',}}>
         <Tabs.Screen name="classroom" options={{
            headerTitle: "Salon de clases",
+           headerTitleAlign: 'center',
            title: 'Salon', 
            tabBarIcon: ({ color, focused }) => (<Ionicons name={focused ? 'easel-sharp' : 'easel-outline'} color={color} size={24} />),   }} />
 
@@ -15,7 +16,8 @@ export default function TabsLayout() {
            tabBarIcon: ({ color, focused }) => (<Ionicons name={focused ? 'search-sharp' : 'search-outline'} color={color} size={24} />),   }} />
 
         <Tabs.Screen name="home" options={{
-           headerTitle: "Kollaborate", 
+           headerTitle: "Kollaborate",
+           headerTitleAlign: 'center', 
            title: 'Inicio', 
            tabBarIcon: ({ color, focused }) => (<Ionicons name={focused ? 'home-sharp' : 'home-outline'} color={color} size={24} />),  }} />
 

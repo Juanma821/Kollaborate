@@ -5,10 +5,12 @@ export default function SearchLayout() {
     <Stack>
         <Stack.Screen name="index" options={{
              headerTitle: "Busqueda",
-             headerLeft: () => null }} />
+             headerLeft: () => null,
+             headerTitleAlign: 'center' }} />
 
         <Stack.Screen name="profileresult" options={{
-             headerTitle: "Perfil" }} />
+             headerTitle: "Perfil",
+             headerTitleAlign: 'center' }} />
 
     </Stack>
   );
