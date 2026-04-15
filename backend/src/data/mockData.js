@@ -9,4 +9,14 @@ const users = [
     }
 ];
 
-module.exports = { users };
+
+let skills = [
+    { id: 1, name: 'Ingles' },
+    { id: 2, name: 'Matematicas' },
+    { id: 3, name: 'Quimica' }
+];
+
+let userSkillsOffer = [];
+let userSkillsWant = [];
+
+module.exports = { users, skills, userSkillsOffer, userSkillsWant };
