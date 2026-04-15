@@ -1,55 +1,92 @@
 import { router } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Fontisto from '@expo/vector-icons/Fontisto';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import Feather from '@expo/vector-icons/Feather';
-import Octicons from '@expo/vector-icons/Octicons';
-import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // install
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6'; //install
+import Fontisto from '@expo/vector-icons/Fontisto'; //install
+import Ionicons from '@expo/vector-icons/Ionicons'; //install
+import ProfileIcon from '../../../assets/images/profileicon.png';
+
+
 
 
 export default function Profile() {
   const insets = useSafeAreaInsets();
 
   return (
-    // Aplicamos el padding superior dinámicamente según el dispositivo
     <View style={[styles.container, { paddingTop: insets.top }]}>
       
-      {/* Sección Saldo Actual */}
-      <View style={styles.balanceContainer}>
-        <Text style={styles.balanceLabel}>Tarjeta Perfil</Text>
+      {/* Sección Tarjeta Perfil */}
+      <View style={styles.cardContainer}>
+      {/* SECCIÓN IZQUIERDA: Identificación básica */}
+      <View style={styles.leftColumn}>
+        <Image source={ProfileIcon} style={styles.profileImage}/>
+        <Text style={styles.userName}>@UserAlias</Text>
+        <Text style={styles.institution}>Duoc UC</Text>
+        
+        {/* Rango/Medalla */}
+        <View style={styles.rankContainer}>
+          <Ionicons name="ribbon-sharp" size={24} color="#FFD700" />
+          <Text style={styles.rankText}>Oro</Text>
+        </View>
+      </View>
+
+      {/* SECCIÓN DERECHA: Habilidades */}
+      <View style={styles.rightColumn}>
+        
+        {/* Sub-sección Arriba: Ofrece */}
+        <View style={styles.skillsSection}>
+          <Text style={styles.skillLabel}>OFRECE:</Text>
+          <View style={styles.tagWrapper}>
+            <Text style={styles.skillTag}>React</Text>
+            <Text style={styles.skillTag}>UX/UI</Text>
+          </View>
+        </View>
+
+        {/* Línea divisoria interna horizontal */}
+        <View style={styles.innerDivider} />
+
+        {/* Sub-sección Abajo: Busca */}
+        <View style={styles.skillsSection}>
+          <Text style={styles.skillLabel}>BUSCA:</Text>
+          <View style={styles.tagWrapper}>
+            <Text style={styles.skillTag}>Node.js</Text>
+            <Text style={styles.skillTag}>Python</Text>
+          </View>
+        </View>
+        
+      </View>
       </View>
 
       {/* Sección Opciones */}
       <View style={styles.contentSection}>
         <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/(tabs)/profile/configuration')}>
-          <Ionicons name="settings-sharp" size={30} color="black" />
+          <Ionicons name="settings-sharp" size={28} color="black" />
            <Text>Ajustes</Text>
         </TouchableOpacity>  
 
         <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/(tabs)/profile/skills')}>
-          <Ionicons name="clipboard-sharp" size={24} color="black" />
+          <Ionicons name="clipboard-sharp" size={28} color="black" />
            <Text>Habilidades</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/(tabs)/profile/editprofile')}>
-          <Feather name="edit" size={24} color="black" />
+          <Ionicons name="create-sharp" size={28} color="black" />
            <Text>Editar Perfil</Text>
         </TouchableOpacity> 
 
         <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/(tabs)/profile/statistics')}>
-         <Octicons name="goal" size={24} color="black" />
+         <Ionicons name="bar-chart-sharp" size={28} color="black" />
           <Text>Estadísticas</Text>
         </TouchableOpacity> 
 
         <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/(tabs)/profile/record')}>
-         <Fontisto name="history" size={24} color="black" />
+         <Fontisto name="history" size={28} color="black" />
           <Text>Historial</Text>
         </TouchableOpacity> 
 
         <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/(tabs)/profile/token')}>
-         <MaterialIcons name="generating-tokens" size={28} color="black" />
+         <FontAwesome6 name="coins" size={28} color="black" />
           <Text>Tokens</Text>
         </TouchableOpacity>
     
@@ -65,47 +102,108 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
 
-  // Estilo Container Saldo Actual
-  balanceContainer: {
-    paddingVertical: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#8ba5fa',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 12,
-    padding: 4,
-    elevation: 3,
+// Estilo Container Tarjeta Perfil
+cardContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    margin: 20,
+    padding: 15,
+    elevation: 5,
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: '#eee',
   },
-  balanceLabel: {
-    fontSize: 16,
-    color: '#2c2525',
-    marginBottom: 5,
+  
+  // COLUMNA IZQUIERDA
+  leftColumn: {
+    flex: 0.35,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#f0f0f0',
+    paddingRight: 10,
   },
-  balanceAmount: {
-    fontSize: 36,
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#eee',
+    marginBottom: 8,
+  },
+  userName: {
+    fontSize: 14,
     fontWeight: 'bold',
+    textAlign: 'center',
     color: '#333',
   },
+  institution: {
+    fontSize: 11,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  rankContainer: {
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  rankText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#B8860B',
+  },
 
-  //Estilo Contenido Opciones
+  // COLUMNA DERECHA
+  rightColumn: {
+    flex: 0.65,
+    paddingLeft: 15,
+    justifyContent: 'space-between',
+  },
+  skillsSection: {
+    flex: 1,
+    paddingVertical: 5,
+  },
+  skillLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#ff743dff', 
+    marginBottom: 5,
+  },
+  tagWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 5,
+  },
+  skillTag: {
+    fontSize: 11,
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 5,
+    color: '#444',
+  },
+  innerDivider: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+    marginVertical: 5,
+  },
+
+//Estilo Contenido Opciones
   contentSection: {
-    flexDirection: 'row', // Alinea en fila
-    flexWrap: 'wrap',    // Permite que bajen a la siguiente fila
-    justifyContent: 'center', // Centra el contenido horizontalmente
-    alignItems: 'center',     // Centra el contenido verticalmente
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center', 
     padding: 20,
   },
   iconButton: {
-    width: '30%',        // Un poco menos del 33% para dejar espacio al margen
-    aspectRatio: 1,      // Hace que el botón sea cuadrado
+    width: '30%',
+    aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: '1.5%',      // Pequeño espacio entre botones
-    backgroundColor: '#fff', // Opcional: fondo para el botón
+    margin: '1.5%',
+    backgroundColor: '#fff', 
     borderRadius: 12,
   },
 });
