@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; //install
 
 export default function Record() {
   const [selectedTab, setSelectedTab] = useState('day'); 

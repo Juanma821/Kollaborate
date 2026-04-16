@@ -5,9 +5,29 @@ const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 
+const userRoutes = require('./routes/user.routes');
+
+const skillsRoutes = require('./routes/skills.routes');
+
+const matchRoutes = require('./routes/match.routes');
+
+const intercambioRoutes = require('./routes/intercambio.routes');
+
 app.use(cors());
 app.use(express.json());
 
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
 app.use('/api/auth', authRoutes);
+
+app.use('/api/users', userRoutes);
+
+app.use('/api/skills', skillsRoutes);
+
+app.use('/api/match', matchRoutes);
+
+app.use('/api/intercambios', intercambioRoutes);
 
 module.exports = app;
