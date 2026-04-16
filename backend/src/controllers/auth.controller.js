@@ -1,4 +1,4 @@
-const { error } = require('selenium-webdriver');
+const jwt = require('jsonwebtoken');
 const authService = require('../services/auth.service');
 
 const login = async (req, res) => {
@@ -10,10 +10,19 @@ const login = async (req, res) => {
         return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
+    const token =jwt.sign(
+        { id: user.id, email: user.email},
+        'secreto',
+        {expiresIn: '1h'}
+    );
+
     res.json({
-        id: user.id,
-        email: user.email,
-        name: user.name});
+        token,
+        user: {
+            id: user.id,
+            email: user.email,
+            name: user.name}
+    });
 };
 const register = async(req, res) =>{
     const{email, password, name } = req.body;

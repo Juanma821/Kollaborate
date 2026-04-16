@@ -27,4 +27,13 @@ let userSkillsWant = [];
 
 let intercambios = [];
 
-module.exports = { users, skills, userSkillsOffer, userSkillsWant, intercambios };
+// Simulacion saldo con mockData
+let tokens = [
+    { userId: 1, saldo: 100 },
+    { userId: 2, saldo: 100 }
+];
+
+let tokenTransactions = [];
+
+module.exports = { users, skills, userSkillsOffer,
+     userSkillsWant, intercambios, tokens, tokenTransactions };

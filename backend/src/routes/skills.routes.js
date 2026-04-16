@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { verifyToken } = require('../middlewares/auth.middleware');
 
 const {
     getSkills,
@@ -10,14 +11,16 @@ const {
     addSkillWant
 } = require('../controllers/skills.controller');
 
-// CRUD
+
 router.get('/', getSkills);
-router.post('/', createSkill);
-router.put('/:id', updateSkill);
-router.delete('/:id', deleteSkill);
+// CRUD Protegido
+router.post('/', verifyToken, createSkill);
+router.put('/:id', verifyToken, updateSkill);
+router.delete('/:id', verifyToken, deleteSkill);
 
 // Relación usuario
-router.post('/:id/offer', addSkillOffer);
-router.post('/:id/want', addSkillWant);
+router.post('/:id/offer', verifyToken, addSkillOffer);
+router.post('/:id/want', verifyToken, addSkillWant);
+
 
 module.exports = router;
