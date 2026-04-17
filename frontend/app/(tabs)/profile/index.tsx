@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'; // install
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6'; //install
 import Fontisto from '@expo/vector-icons/Fontisto'; //install
 import Ionicons from '@expo/vector-icons/Ionicons'; //install
-import ProfileIcon from '../../../assets/images/profileicon.png';
+import ProfileIcon from '../../../assets/images/profileicon.png'; //Import
 
 
 
@@ -18,44 +18,44 @@ export default function Profile() {
       
       {/* Sección Tarjeta Perfil */}
       <View style={styles.cardContainer}>
-      {/* SECCIÓN IZQUIERDA: Identificación básica */}
-      <View style={styles.leftColumn}>
-        <Image source={ProfileIcon} style={styles.profileImage}/>
-        <Text style={styles.userName}>@UserAlias</Text>
-        <Text style={styles.institution}>Duoc UC</Text>
+        {/* SECCIÓN IZQUIERDA: Identificación básica */}
+        <View style={styles.leftColumn}>
+          <Image source={ProfileIcon} style={styles.profileImage}/>
+          <Text style={styles.userName}>@UserAlias</Text>
+          <Text style={styles.institution}>Duoc UC</Text>
         
-        {/* Rango/Medalla */}
-        <View style={styles.rankContainer}>
-          <Ionicons name="ribbon-sharp" size={24} color="#FFD700" />
-          <Text style={styles.rankText}>Oro</Text>
-        </View>
-      </View>
-
-      {/* SECCIÓN DERECHA: Habilidades */}
-      <View style={styles.rightColumn}>
-        
-        {/* Sub-sección Arriba: Ofrece */}
-        <View style={styles.skillsSection}>
-          <Text style={styles.skillLabel}>OFRECE:</Text>
-          <View style={styles.tagWrapper}>
-            <Text style={styles.skillTag}>React</Text>
-            <Text style={styles.skillTag}>UX/UI</Text>
+          {/* Rango/Medalla */}
+          <View style={styles.rankContainer}>
+            <Ionicons name="ribbon-sharp" size={24} color="#FFD700" />
+            <Text style={styles.rankText}>Oro</Text>
           </View>
         </View>
 
-        {/* Línea divisoria interna horizontal */}
-        <View style={styles.innerDivider} />
-
-        {/* Sub-sección Abajo: Busca */}
-        <View style={styles.skillsSection}>
-          <Text style={styles.skillLabel}>BUSCA:</Text>
-          <View style={styles.tagWrapper}>
-            <Text style={styles.skillTag}>Node.js</Text>
-            <Text style={styles.skillTag}>Python</Text>
-          </View>
-        </View>
+        {/* SECCIÓN DERECHA: Habilidades */}
+        <View style={styles.rightColumn}>
         
-      </View>
+          {/* Sub-sección Arriba: Ofrece */}
+          <View style={styles.skillsSection}>
+            <Text style={styles.skillLabel}>OFRECE:</Text>
+            <View style={styles.tagWrapper}>
+              <Text style={styles.skillTag}>React</Text>
+              <Text style={styles.skillTag}>UX/UI</Text>
+            </View>
+          </View>
+
+          {/* Línea divisoria interna horizontal */}
+          <View style={styles.innerDivider} />
+
+          {/* Sub-sección Abajo: Busca */}
+          <View style={styles.skillsSection}>
+            <Text style={styles.skillLabel}>BUSCA:</Text>
+            <View style={styles.tagWrapper}>
+              <Text style={styles.skillTag}>Node.js</Text>
+              <Text style={styles.skillTag}>Python</Text>
+            </View>
+          </View>
+        
+        </View>
       </View>
 
       {/* Sección Opciones */}
