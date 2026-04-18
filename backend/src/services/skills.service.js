@@ -34,20 +34,36 @@ const deleteSkill = (id) => {
 //  RELACIÓN USUARIO - SKILLS
 
 const addSkillOffer = (userId, skillId) => {
-    userSkillsOffer.push({
-        userId: parseInt(userId),
-        skillId: parseInt(skillId)
-    });
+    const exists = userSkillsOffer.find(
+        u => u.userId === parseInt(userId) && u.skillId === parseInt(skillId)
+    );
+
+    if (!exists) {
+        userSkillsOffer.push({
+            userId: parseInt(userId),
+            skillId: parseInt(skillId)
+        });
+    }
+
     return true;
 };
 
 const addSkillWant = (userId, skillId) => {
-    userSkillsWant.push({
-        userId: parseInt(userId),
-        skillId: parseInt(skillId)
-    });
+    const exists = userSkillsWant.find(
+        u => u.userId === parseInt(userId) && u.skillId === parseInt(skillId)
+    );
+
+    if (!exists) {
+        userSkillsWant.push({
+            userId: parseInt(userId),
+            skillId: parseInt(skillId)
+        });
+    }
+
     return true;
 };
+
+
 
 module.exports = {
     getSkills,

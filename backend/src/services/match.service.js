@@ -27,7 +27,18 @@ const findMatches = (userId) => {
         });
     });
 
-    return matches;
+    // 🔥 LIMPIAR DUPLICADOS
+    const uniqueMatches = [];
+
+    matches.forEach(m => {
+        const exists = uniqueMatches.find(
+            u => u.userId === m.userId && u.skill === m.skill
+        );
+
+        if (!exists) uniqueMatches.push(m);
+    });
+
+    return uniqueMatches;
 };
 
 module.exports = { findMatches };

@@ -41,19 +41,19 @@ const deleteSkill = (req, res) => {
 //  RELACIÓN
 
 const addSkillOffer = (req, res) => {
-    const { id } = req.params;
-    const { skillId } = req.body;
+    const userId = req.user.id;
+    const skillId  = req.params.id;
 
-    skillsService.addSkillOffer(id, skillId);
+    skillsService.addSkillOffer(userId, skillId);
 
     res.json({ message: 'Skill agregada como oferta' });
 };
 
 const addSkillWant = (req, res) => {
-    const { id } = req.params;
-    const { skillId } = req.body;
+    const  userId = req.user.id;
+    const skillId = req.params.id;
 
-    skillsService.addSkillWant(id, skillId);
+    skillsService.addSkillWant(userId, skillId);
 
     res.json({ message: 'Skill agregada como interés' });
 };
