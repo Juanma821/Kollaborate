@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, FlatList, ScrollView, Platform } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
+
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; //Install
+import { Ionicons } from '@expo/vector-icons'; //Install
+import DateTimePicker from '@react-native-community/datetimepicker'; //Install
 
 // Tipos de datos para los mensajes
 const MOCK_MESSAGES = [
@@ -19,7 +20,7 @@ export default function MBChat() {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   
-  // ESTADOS
+  // Estados
   const [messages, setMessages] = useState(MOCK_MESSAGES);
   const [fecha, setFecha] = useState(new Date());
   const [mostrarPicker, setMostrarPicker] = useState(false);
@@ -39,10 +40,10 @@ export default function MBChat() {
   // Manejador del DatePicker
   const onChangeFecha = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || fecha;
-    setMostrarPicker(Platform.OS === 'ios'); // En iOS el picker queda abierto
+    setMostrarPicker(Platform.OS === 'ios');
     setFecha(currentDate);
 
-    if (event.type === 'set') { // El usuario presionó "Ok"
+    if (event.type === 'set') {
       const dia = currentDate.getDate().toString().padStart(2, '0');
       const mes = (currentDate.getMonth() + 1).toString().padStart(2, '0');
       const hora = currentDate.getHours().toString().padStart(2, '0');
@@ -53,7 +54,7 @@ export default function MBChat() {
     }
   };
 
-  // Renderizado de burbujas de mensaje
+  // Render burbujas de mensaje
   const renderMessage = ({ item }: { item: any }) => (
     <View style={[
       styles.messageWrapper, 
@@ -91,7 +92,7 @@ export default function MBChat() {
         contentContainerStyle={styles.messagesList}
       />
 
-      {/* PANEL DE ACCIONES ESTRUCTURADAS */}
+      {/* Panel de Acciones */}
       <View style={[styles.actionPanel, { paddingBottom: insets.bottom + 10 }]}>
         <Text style={styles.panelTitle}>Sugerir Acuerdo:</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsContainer}>
@@ -129,7 +130,7 @@ export default function MBChat() {
         </ScrollView>
       </View>
 
-      {/* COMPONENTE SELECTOR DE FECHA */}
+      {/* Componente Selector de Fecha */}
       {mostrarPicker && (
         <DateTimePicker
           value={fecha}
@@ -144,13 +145,26 @@ export default function MBChat() {
   );
 }
 
+// Estilos
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0f2f5' },
-  messagesList: { padding: 16 },
-  messageWrapper: { flexDirection: 'row', marginBottom: 12 },
-  userMessageAlign: { justifyContent: 'flex-end' },
-  otherMessageAlign: { justifyContent: 'flex-start' },
-  
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f0f2f5' 
+  },
+  //Mensajes
+  messagesList: { 
+    padding: 16 
+  },
+  messageWrapper: { 
+    flexDirection: 'row', 
+    marginBottom: 12 
+  },
+  userMessageAlign: { 
+    justifyContent: 'flex-end' 
+  },
+  otherMessageAlign: { 
+    justifyContent: 'flex-start' 
+  },  
   messageContainer: {
     maxWidth: '85%',
     padding: 12,
@@ -161,7 +175,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
-  userMessageCard: { backgroundColor: '#e3efff', borderBottomRightRadius: 2 },
+  userMessageCard: { 
+    backgroundColor: '#e3efff', 
+    borderBottomRightRadius: 2 
+  },
   systemMessage: { 
     backgroundColor: '#eceff1', 
     alignSelf: 'center', 
@@ -172,12 +189,30 @@ const styles = StyleSheet.create({
     borderColor: '#b0bec5',
     marginVertical: 10
   },
-  systemText: { textAlign: 'center', fontStyle: 'italic', color: '#607d8b', fontSize: 13 },
-  
-  userName: { fontWeight: 'bold', fontSize: 12, color: '#ff743dff', marginBottom: 4 },
-  messageText: { fontSize: 15, color: '#333', lineHeight: 20 },
-  timestamp: { fontSize: 9, color: '#999', marginTop: 5, textAlign: 'right' },
-
+  systemText: { 
+    textAlign: 'center', 
+    fontStyle: 'italic', 
+    color: '#607d8b', 
+    fontSize: 13 
+  },
+  userName: { 
+    fontWeight: 'bold', 
+    fontSize: 12, 
+    color: '#ff743dff', 
+    marginBottom: 4 
+  },
+  messageText: { 
+    fontSize: 15, 
+    color: '#333', 
+    lineHeight: 20 
+  },
+  timestamp: { 
+    fontSize: 9, 
+    color: '#999', 
+    marginTop: 5, 
+    textAlign: 'right' 
+  },
+// Panel de acciones
   actionPanel: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 25,
@@ -188,8 +223,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 10,
   },
-  panelTitle: { fontSize: 12, fontWeight: '800', color: '#bbb', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 },
-  chipsContainer: { gap: 12, paddingRight: 20 },
+  panelTitle: { 
+    fontSize: 12, 
+    fontWeight: '800', 
+    color: '#bbb', 
+    marginBottom: 12, 
+    textTransform: 'uppercase', 
+    letterSpacing: 1 
+  },
+  chipsContainer: { 
+    gap: 12, 
+    paddingRight: 20 
+  },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -199,5 +244,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     gap: 8,
   },
-  chipText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  chipText: { 
+    color: '#fff', 
+    fontSize: 14, 
+    fontWeight: '600' 
+  },
 });
