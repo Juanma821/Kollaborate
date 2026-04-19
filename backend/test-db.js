@@ -7,7 +7,7 @@ async function testConnection() {
         const connection = await oracledb.getConnection({
             user: 'Usuario2',
             password: 'DuocUC123456',
-            connectString: 'kldhz48x2nkrpwvg_high'
+            connectString: 'kldhz48x2nkrpwvg_medium'
         });
 
         console.log('✅ Conectado a Oracle');
