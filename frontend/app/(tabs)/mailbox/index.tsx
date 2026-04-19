@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; //Install
+import { useRouter } from 'expo-router'; //Install
+import { Ionicons } from '@expo/vector-icons'; //Install
 
 export default function Mailbox() {
   const [selectedTab, setSelectedTab] = useState('request');
@@ -27,7 +28,7 @@ export default function Mailbox() {
     { id: 101, usuario: 'Maria José', ultimoMensaje: 'Mensaje', fecha: '12:30' },
   ];
 
-  // Función para abrir el modal de resolución
+  // Función abrir modal
   const abrirResolucion = (item: any) => {
     setSelectedRespuesta(item);
     setModalVisible(true);
@@ -57,7 +58,8 @@ export default function Mailbox() {
         </Text>
         
         <ScrollView showsVerticalScrollIndicator={false}>
-          {/* LÓGICA DE RENDERIZADO POR PESTAÑA */}
+
+          {/* Lógica por pestaña */}
           {selectedTab === 'request' && solicitudes.map(item => (
             <TouchableOpacity 
               key={item.id} 
@@ -112,7 +114,7 @@ export default function Mailbox() {
         </ScrollView>
       </View>
 
-      {/* MODAL DE RESOLUCIÓN */}
+      {/* Modal Respuesta */}
       <Modal visible={modalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -145,28 +147,129 @@ export default function Mailbox() {
   );
 }
 
+//Estilos
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
-  selectorContainer: { flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 20, marginTop: 20, borderRadius: 12, padding: 4, elevation: 2 },
-  selectorButton: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-  selectorButtonActive: { backgroundColor: '#ff743dff' },
-  selectorText: { fontSize: 12, fontWeight: '600', color: '#666' },
-  selectorTextActive: { color: '#fff' },
-  contentSection: { flex: 1, marginTop: 25, backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: 20, paddingTop: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#333', marginBottom: 15 },
-  listItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  avatarPlaceholder: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#f9f9f9', justifyContent: 'center', alignItems: 'center' },
-  itemTitle: { fontSize: 15, fontWeight: 'bold' },
-  itemSub: { fontSize: 13, color: '#666' },
-  itemDate: { fontSize: 11, color: '#aaa', marginRight: 10 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f8f9fa' 
+  },
+  // Selector de Pestañas
+  selectorContainer: { 
+    flexDirection: 'row', 
+    backgroundColor: '#fff', 
+    marginHorizontal: 20, 
+    marginTop: 20, 
+    borderRadius: 12, 
+    padding: 4, 
+    elevation: 2 
+  },
+  selectorButton: { 
+    flex: 1, 
+    paddingVertical: 12, 
+    borderRadius: 10, 
+    alignItems: 'center' 
+  },
+  selectorButtonActive: { 
+    backgroundColor: '#ff743dff' 
+  },
+  selectorText: { 
+    fontSize: 12, 
+    fontWeight: '600', 
+    color: '#666' 
+  },
+  selectorTextActive: {
+     color: '#fff' 
+    },
+
+  //Contenido Sección  
+  contentSection: { 
+    flex: 1, 
+    marginTop: 25, 
+    backgroundColor: '#fff', 
+    borderTopLeftRadius: 30, 
+    borderTopRightRadius: 30, 
+    paddingHorizontal: 20, 
+    paddingTop: 20 
+  },
+  sectionTitle: { 
+    fontSize: 18, 
+    fontWeight: '700', 
+    color: '#333', 
+    marginBottom: 15,
+    textAlign: 'center'    
+  },
+  listItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingVertical: 15, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#f0f0f0' 
+  },
+  avatarPlaceholder: { 
+    width: 50, 
+    height: 50, 
+    borderRadius: 25, 
+    backgroundColor: '#f9f9f9', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  itemTitle: { 
+    fontSize: 15, 
+    fontWeight: 'bold' 
+  },
+  itemSub: { 
+    fontSize: 13, 
+    color: '#666' 
+  },
+  itemDate: { 
+    fontSize: 11, 
+    color: '#aaa', 
+    marginRight: 10 
+  },
   
   // Estilos del Modal
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { width: '80%', backgroundColor: '#fff', borderRadius: 20, padding: 25, alignItems: 'center' },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15 },
-  modalText: { fontSize: 16, marginBottom: 10 },
-  statusBadge: { paddingHorizontal: 20, paddingVertical: 5, borderRadius: 20, marginVertical: 15 },
-  statusBadgeText: { color: '#fff', fontWeight: 'bold' },
-  modalButton: { width: '100%', padding: 15, borderRadius: 12, alignItems: 'center', marginTop: 10 },
-  modalButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.5)', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  modalContent: { 
+    width: '80%', 
+    backgroundColor: '#fff', 
+    borderRadius: 20, 
+    padding: 25, 
+    alignItems: 'center' 
+  },
+  modalTitle: { 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    marginBottom: 15 
+  },
+  modalText: { 
+    fontSize: 16, 
+    marginBottom: 10 
+  },
+  statusBadge: { 
+    paddingHorizontal: 20, 
+    paddingVertical: 5, 
+    borderRadius: 20, 
+    marginVertical: 15 
+  },
+  statusBadgeText: { 
+    color: '#fff', 
+    fontWeight: 'bold' 
+  },
+  modalButton: { 
+    width: '100%', 
+    padding: 15, 
+    borderRadius: 12, 
+    alignItems: 'center', 
+    marginTop: 10 
+  },
+  modalButtonText: { 
+    color: '#fff', 
+    fontWeight: 'bold', 
+    fontSize: 16 
+  }
 });
