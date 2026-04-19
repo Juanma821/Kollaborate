@@ -16,7 +16,7 @@ export default function Mailbox() {
 
   // Datos de ejemplo
   const solicitudes = [
-    { id: 1, usuario: 'Pedro Picapiedra', habilidad: 'Clases de Piano', fecha: 'hace 5 min' },
+    { id: 1, usuario: 'Juan Pérez', habilidad: 'React', fecha: 'hace 5 min' },
   ];
 
   const respuestas = [
