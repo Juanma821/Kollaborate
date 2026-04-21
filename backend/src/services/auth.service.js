@@ -15,15 +15,18 @@ const login = async (email, password) => {
         });
 
         const result = await connection.execute(
-            `SELECT id, email, nombre, password_hash 
+            `SELECT id, email, nombre, apellido, password_hash 
              FROM usuarios 
              WHERE email = :email`,
-            [email]
+            [email],
+            { outFormat: oracledb.OUT_FORMAT_OBJECT}
         );
 
         const user = result.rows[0];
 
-        if (!user) return null;
+        console.log("USER DESDE BD:", user);
+
+        if (!user || !user.PASSWORD_HASH) return null;
 
         const passwordMatch = await bcrypt.compare(password, user.PASSWORD_HASH);
 
@@ -32,7 +35,7 @@ const login = async (email, password) => {
         return {
             id: user.ID,
             email: user.EMAIL,
-            name: user.NOMBRE
+            name: `${user.NOMBRE} ${user.APELLIDO || ''}`.trim()
         };
 
     } catch (error) {
@@ -93,6 +96,10 @@ const register = async (email, password, name) => {
         };
 
     } catch (error) {
+        if (error.errorNum === 1){
+            return null;
+        }
+
         console.error(error);
         throw error;
     } finally {
