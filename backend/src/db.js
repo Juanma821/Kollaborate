@@ -3,11 +3,11 @@ const oracledb = require('oracledb');
 
 // Oracle Instant Client
 oracledb.initOracleClient({
-    libDir: "D:/Herramientas/Oracle/instantclient_23_0"
+    libDir: process.env.ORACLE_CLIENT
 });
 
 // Wallet / TNS
-process.env.TNS_ADMIN = "C:/Users/gonga/Desktop/Portafolio/conexiondb";
+process.env.TNS_ADMIN = process.env.TNS_ADMIN;
 
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 

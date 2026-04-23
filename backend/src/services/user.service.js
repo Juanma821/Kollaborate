@@ -11,7 +11,7 @@ const getUserById = async (id) => {
             `SELECT id, email, nombre, apellido
              FROM usuarios
              WHERE id = :id`,
-            [id]
+            { id }
         );
 
         const user = result.rows[0];
@@ -36,19 +36,25 @@ const updateUser = async (id, data) => {
     try {
         connection = await db.getConnection();
 
-        await connection.execute(
+        const [nombre, apellido] = data.name.split(' ');
+
+        const result = await connection.execute(
             `UPDATE usuarios
              SET nombre = :nombre,
+                 apellido = :apellido,
                  email = :email
              WHERE id = :id`,
             {
                 id,
-                nombre: data.name,
+                nombre,
+                apellido: apellido || '',
                 email: data.email
             }
         );
 
         await connection.commit();
+
+        if (result.rowsAffected === 0) return null;
 
         return await getUserById(id);
 
