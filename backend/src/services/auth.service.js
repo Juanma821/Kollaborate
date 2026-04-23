@@ -1,4 +1,4 @@
-const oracledb = require('oracledb');
+const oracledb = require('../db');
 const bcrypt = require('bcrypt');
 
 // process.env.TNS_ADMIN = "C:/Users/gonga/Desktop/Portafolio/conexiondb";

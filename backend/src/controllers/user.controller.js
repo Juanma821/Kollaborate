@@ -1,35 +1,23 @@
 const userService = require('../services/user.service');
 
-const getUser = (req, res) => {
-    const { id } = req.params;
-
-    const user = userService.getUserById(id);
+const getUser = async (req, res) => {
+    const user = await userService.getUserById(Number(req.params.id));
 
     if (!user) {
         return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    res.json({
-        id: user.id,
-        email: user.email,
-        name: user.name
-    });
+    res.json(user);
 };
 
-const updateUser = (req, res) => {
-    const { id } = req.params;
-
-    const user = userService.updateUser(id, req.body);
+const updateUser = async (req, res) => {
+    const user = await userService.updateUser(Number(req.params.id), req.body);
 
     if (!user) {
         return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    res.json({
-        id: user.id,
-        email: user.email,
-        name: user.name
-    });
+    res.json(user);
 };
 
 module.exports = { getUser, updateUser };

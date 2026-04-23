@@ -1,18 +1,63 @@
-const { users } = require('../data/mockData');
+const db = require('../db');
 
-const getUserById = (id) => {
-    return users.find(u => u.id === parseInt(id));
+//  Obtener usuario
+const getUserById = async (id) => {
+    let connection;
+
+    try {
+        connection = await db.getConnection();
+
+        const result = await connection.execute(
+            `SELECT id, email, nombre, apellido
+             FROM usuarios
+             WHERE id = :id`,
+            [id]
+        );
+
+        const user = result.rows[0];
+
+        if (!user) return null;
+
+        return {
+            id: user.ID,
+            email: user.EMAIL,
+            name: `${user.NOMBRE} ${user.APELLIDO || ''}`.trim()
+        };
+
+    } finally {
+        if (connection) await connection.close();
+    }
 };
 
-const updateUser = (id, data) => {
-    const user = users.find(u => u.id === parseInt(id));
+//  actualizar usuario
+const updateUser = async (id, data) => {
+    let connection;
 
-    if (!user) return null;
+    try {
+        connection = await db.getConnection();
 
-    user.name = data.name || user.name;
-    user.email = data.email || user.email;
+        await connection.execute(
+            `UPDATE usuarios
+             SET nombre = :nombre,
+                 email = :email
+             WHERE id = :id`,
+            {
+                id,
+                nombre: data.name,
+                email: data.email
+            }
+        );
 
-    return user;
+        await connection.commit();
+
+        return await getUserById(id);
+
+    } finally {
+        if (connection) await connection.close();
+    }
 };
 
-module.exports = { getUserById, updateUser };
+module.exports = {
+    getUserById,
+    updateUser
+};
