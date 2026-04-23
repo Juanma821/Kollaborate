@@ -1,6 +1,10 @@
 const db = require('../db');
 
-//  Obtener usuario
+const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
+// GET usuario
 const getUserById = async (id) => {
     let connection;
 
@@ -15,7 +19,6 @@ const getUserById = async (id) => {
         );
 
         const user = result.rows[0];
-
         if (!user) return null;
 
         return {
@@ -29,14 +32,36 @@ const getUserById = async (id) => {
     }
 };
 
-//  actualizar usuario
+// UPDATE
 const updateUser = async (id, data) => {
     let connection;
 
     try {
         connection = await db.getConnection();
 
-        const [nombre, apellido] = data.name.split(' ');
+        //  validaciones
+        if (!data.name || !data.email) {
+            throw new Error('Nombre y email son obligatorios');
+        }
+
+        if (!isValidEmail(data.email)) {
+            throw new Error('Email inválido');
+        }
+
+        // separar nombre
+        const parts = data.name.trim().split(' ');
+        const nombre = parts[0];
+        const apellido = parts.slice(1).join(' ') || '';
+
+        // verificar duplicado
+        const existing = await connection.execute(
+            `SELECT id FROM usuarios WHERE email = :email AND id != :id`,
+            { email: data.email, id }
+        );
+
+        if (existing.rows.length > 0) {
+            throw new Error('El email ya está en uso');
+        }
 
         const result = await connection.execute(
             `UPDATE usuarios
@@ -47,7 +72,7 @@ const updateUser = async (id, data) => {
             {
                 id,
                 nombre,
-                apellido: apellido || '',
+                apellido,
                 email: data.email
             }
         );

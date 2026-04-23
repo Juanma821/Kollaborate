@@ -25,19 +25,20 @@ const login = async (req, res) => {
     });
 };
 const register = async(req, res) =>{
-    const{email, password, name } = req.body;
+    try{
+        const{email, password, name } = req.body;
     
-    const user = await authService.register(email, password, name);
+        const user = await authService.register(email, password, name);
 
-    if (!user){
-        return res.status(400).json({error: 'Usuario ya existe'});
+        if (!user){
+            return res.status(400).json({error: 'Usuario ya existe'});
+        }
+
+        res.json(user);
+
+    } catch (error){
+        return res.status(400).json({ error: error.message });
     }
-
-    res.json({
-        id: user.id,
-        email: user.email,
-        name: user.name
-    });
 }
 
 module.exports = { login, register };
