@@ -370,4 +370,30 @@ export const globalStyles = StyleSheet.create({
         shadowRadius: 4,
     },
 
+    //Pagina Sala Clases/MailBox(Index)
+    headerTitle: { 
+        fontSize: 24, 
+        fontWeight: 'bold', 
+        padding: 20, 
+        color: Colors.textDark,
+        textAlign: 'center'
+    },
+
+    //Pagina Mailbox(Index)/Search(Index)
+    modalOverlay: { 
+        flex: 1, 
+        backgroundColor: Colors.overlay,
+        justifyContent: 'center', 
+    },
+    modalContent: { 
+        backgroundColor: Colors.whiteBg, 
+        borderRadius: 20, 
+        padding: 20 
+    },
+    modalTitle: { 
+        fontSize: 20, 
+        fontWeight: 'bold' 
+    },
+    
+
 });

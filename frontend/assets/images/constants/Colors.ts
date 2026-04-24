@@ -11,13 +11,14 @@ export const Colors = {
 
   // Backgrounds
   authBg: '#293442',        // Oscuro (Auth)
-  appBg: '#f8f9fa',         // Claro (App principal)
+  appBg: '#f8f9fa',         // Claro (App principal) original #f8f9fa
   iconAppBg: '#131313',     // Oscuro (Icono Kollaborate)
   iconProfileBg: '#eeeeee', // Gris claro (Icono de Perfil) 
-  card: '#ffffff',          // Blanco puro (Tarjetas/Secciones)
+  card: '#cacada',          // Blanco puro (Tarjetas/Secciones) original #ffffff
   input: '#f5f5f5',         // Gris (Input, Forms, Picker, SkillTag)
   overlay: 'rgba(0,0,0,0.5)',
   colorCard: '#ff743dff',
+  whiteBg: '#ffffff',
 
   // Textos
   textLight: '#ffffff',     // Texto sobre fondo oscuro, botones naranjos
@@ -32,5 +33,6 @@ export const Colors = {
   borderLight: '#f0f0f0',
   borderDefault: '#eeeeee',
   borderDark: '#e0e0e0',
+  BorderColor: '#ff743dff',
   shadow: '#000000',
 };
