@@ -1,17 +1,21 @@
-const oracledb = require('oracledb');
-
-//  Activar modo THICK (Instant Client)
-oracledb.initOracleClient({
-    libDir: "D:/Herramientas/Oracle/instantclient_23_0" 
-});
-
-// Ruta al wallet 
-process.env.TNS_ADMIN = "C:/Users/gonga/Desktop/Portafolio/conexiondb";
-
+require('dotenv').config();
 
 const app = require('./app');
+const db = require('./db');
 
-//  Levantar servidor
-app.listen(3000, () => {
-    console.log('Servidor corriendo en http://localhost:3000');
-});
+const PORT = process.env.PORT || 3000;
+
+const startServer = async () => {
+    try {
+        await db.initPool();
+
+        app.listen(PORT, () => {
+            console.log(`Servidor corriendo en http://localhost:${PORT}`);
+        });
+
+    } catch (error) {
+        console.error("Error iniciando servidor:", error);
+    }
+};
+
+startServer();

@@ -1,61 +1,94 @@
 const skillsService = require('../services/skills.service');
 
-//  CRUD
-
-const getSkills = (req, res) => {
-    res.json(skillsService.getSkills());
-};
-
-const createSkill = (req, res) => {
-    const { name } = req.body;
-
-    const skill = skillsService.createSkill(name);
-    res.json(skill);
-};
-
-const updateSkill = (req, res) => {
-    const { id } = req.params;
-    const { name } = req.body;
-
-    const skill = skillsService.updateSkill(id, name);
-
-    if (!skill) {
-        return res.status(404).json({ error: 'Skill no encontrada' });
+// 🔹 GET todas
+const getSkills = async (req, res) => {
+    try {
+        const skills = await skillsService.getSkills();
+        res.json(skills);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al obtener skills' });
     }
-
-    res.json(skill);
 };
 
-const deleteSkill = (req, res) => {
-    const { id } = req.params;
-
-    const ok = skillsService.deleteSkill(id);
-
-    if (!ok) {
-        return res.status(404).json({ error: 'Skill no encontrada' });
+// 🔹 CREATE
+const createSkill = async (req, res) => {
+    try {
+        const skill = await skillsService.createSkill(req.body);
+        res.json(skill);
+    } catch (error) {
+        console.error(error.message);
+        res.status(400).json({ error: error.message });
     }
-
-    res.json({ message: 'Skill eliminada' });
 };
 
-//  RELACIÓN
+// 🔹 UPDATE
+const updateSkill = async (req, res) => {
+    try {
+        const skill = await skillsService.updateSkill(
+            Number(req.params.id),
+            req.body
+        );
 
-const addSkillOffer = (req, res) => {
-    const userId = req.user.id;
-    const skillId  = req.params.id;
+        if (!skill) {
+            return res.status(404).json({ error: 'Skill no encontrada' });
+        }
 
-    skillsService.addSkillOffer(userId, skillId);
-
-    res.json({ message: 'Skill agregada como oferta' });
+        res.json(skill);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al actualizar skill' });
+    }
 };
 
-const addSkillWant = (req, res) => {
-    const  userId = req.user.id;
-    const skillId = req.params.id;
+// 🔹 DELETE
+const deleteSkill = async (req, res) => {
+    try {
+        const result = await skillsService.deleteSkill(Number(req.params.id));
 
-    skillsService.addSkillWant(userId, skillId);
+        if (!result) {
+            return res.status(404).json({ error: 'Skill no encontrada' });
+        }
 
-    res.json({ message: 'Skill agregada como interés' });
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al eliminar skill' });
+    }
+};
+
+// 🔹 Usuario OFRECE skill
+const addSkillOffer = async (req, res) => {
+    try {
+        const result = await skillsService.addSkillToUser({
+            usuario_id: req.user.id,
+            habilidad_id: Number(req.params.id),
+            tipo: 'Ofrece',
+            nivel: req.body.nivel
+        });
+
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al asignar skill' });
+    }
+};
+
+// 🔹 Usuario BUSCA skill
+const addSkillWant = async (req, res) => {
+    try {
+        const result = await skillsService.addSkillToUser({
+            usuario_id: req.user.id,
+            habilidad_id: Number(req.params.id),
+            tipo: 'Busca',
+            nivel: req.body.nivel
+        });
+
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al asignar skill' });
+    }
 };
 
 module.exports = {

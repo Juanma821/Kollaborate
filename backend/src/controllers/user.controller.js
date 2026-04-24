@@ -1,35 +1,37 @@
 const userService = require('../services/user.service');
 
-const getUser = (req, res) => {
-    const { id } = req.params;
+const getUser = async (req, res) => {
+    try {
+        const user = await userService.getUserById(Number(req.params.id));
 
-    const user = userService.getUserById(id);
+        if (!user) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
 
-    if (!user) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
+        res.json(user);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error del servidor' });
     }
-
-    res.json({
-        id: user.id,
-        email: user.email,
-        name: user.name
-    });
 };
 
-const updateUser = (req, res) => {
-    const { id } = req.params;
+const updateUser = async (req, res) => {
+    try {
+        const user = await userService.updateUser(
+            Number(req.params.id),
+            req.body
+        );
 
-    const user = userService.updateUser(id, req.body);
+        if (!user) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
 
-    if (!user) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
+        res.json(user);
+
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
-
-    res.json({
-        id: user.id,
-        email: user.email,
-        name: user.name
-    });
 };
 
 module.exports = { getUser, updateUser };

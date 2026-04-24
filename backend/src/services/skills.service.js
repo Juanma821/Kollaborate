@@ -1,75 +1,148 @@
-const { skills, userSkillsOffer, userSkillsWant } = require('../data/mockData');
+const db = require('../db');
 
-//  CRUD SKILLS
+//  Obtener todas las skills
+const getSkills = async () => {
+    let connection;
 
-const getSkills = () => {
-    return skills;
-};
+    try {
+        connection = await db.getConnection();
 
-const createSkill = (name) => {
-    const newSkill = {
-        id: skills.length + 1,
-        name
-    };
-    skills.push(newSkill);
-    return newSkill;
-};
+        const result = await connection.execute(
+            `SELECT id, nombre, categoria FROM habilidades`
+        );
 
-const updateSkill = (id, name) => {
-    const skill = skills.find(s => s.id === parseInt(id));
-    if (!skill) return null;
+        return result.rows;
 
-    skill.name = name;
-    return skill;
-};
-
-const deleteSkill = (id) => {
-    const index = skills.findIndex(s => s.id === parseInt(id));
-    if (index === -1) return false;
-
-    skills.splice(index, 1);
-    return true;
-};
-
-//  RELACIÓN USUARIO - SKILLS
-
-const addSkillOffer = (userId, skillId) => {
-    const exists = userSkillsOffer.find(
-        u => u.userId === parseInt(userId) && u.skillId === parseInt(skillId)
-    );
-
-    if (!exists) {
-        userSkillsOffer.push({
-            userId: parseInt(userId),
-            skillId: parseInt(skillId)
-        });
+    } finally {
+        if (connection) await connection.close();
     }
-
-    return true;
 };
 
-const addSkillWant = (userId, skillId) => {
-    const exists = userSkillsWant.find(
-        u => u.userId === parseInt(userId) && u.skillId === parseInt(skillId)
-    );
+//  Crear skill
+const createSkill = async (data) => {
+    let connection;
 
-    if (!exists) {
-        userSkillsWant.push({
-            userId: parseInt(userId),
-            skillId: parseInt(skillId)
-        });
+    try {
+        if (!data.nombre) {
+            throw new Error('Nombre requerido');
+        }
+
+        connection = await db.getConnection();
+
+        const result = await connection.execute(
+            `INSERT INTO habilidades (nombre, categoria)
+             VALUES (:nombre, :categoria)
+             RETURNING id INTO :id`,
+            {
+                nombre: data.nombre,
+                categoria: data.categoria || null,
+                id: { dir: db.oracledb.BIND_OUT, type: db.oracledb.NUMBER }
+            }
+        );
+
+        await connection.commit();
+
+        return {
+            id: result.outBinds.id[0],
+            nombre: data.nombre,
+            categoria: data.categoria
+        };
+
+    } finally {
+        if (connection) await connection.close();
     }
-
-    return true;
 };
 
+//  Actualizar skill
+const updateSkill = async (id, data) => {
+    let connection;
 
+    try {
+        connection = await db.getConnection();
+
+        const result = await connection.execute(
+            `UPDATE habilidades
+             SET nombre = :nombre,
+                 categoria = :categoria
+             WHERE id = :id`,
+            {
+                id,
+                nombre: data.nombre,
+                categoria: data.categoria
+            }
+        );
+
+        await connection.commit();
+
+        if (result.rowsAffected === 0) return null;
+
+        return { message: 'Skill actualizada' };
+
+    } finally {
+        if (connection) await connection.close();
+    }
+};
+
+//  Eliminar skill
+const deleteSkill = async (id) => {
+    let connection;
+
+    try {
+        connection = await db.getConnection();
+
+        // Eliminar relaciones primero
+        await connection.execute(
+            `DELETE FROM usuario_habilidades WHERE habilidad_id = :id`,
+            { id }
+        );
+
+        const result = await connection.execute(
+            `DELETE FROM habilidades WHERE id = :id`,
+            { id }
+        );
+
+        await connection.commit();
+
+        if (result.rowsAffected === 0) return null;
+
+        return { message: 'Skill eliminada correctamente' };
+
+    } finally {
+        if (connection) await connection.close();
+    }
+};
+
+//  Asignar skill a usuario (Ofrece / Busca)
+const addSkillToUser = async (data) => {
+    let connection;
+
+    try {
+        connection = await db.getConnection();
+
+        await connection.execute(
+            `INSERT INTO usuario_habilidades (usuario_id, habilidad_id, tipo, nivel)
+             VALUES (:usuario_id, :habilidad_id, :tipo, :nivel)`,
+            {
+                usuario_id: data.usuario_id,
+                habilidad_id: data.habilidad_id,
+                tipo: data.tipo,
+                nivel: data.nivel
+            }
+        );
+
+        await connection.commit();
+
+        return { message: 'Habilidad asignada correctamente' };
+
+    } finally {
+        if (connection) await connection.close();
+    }
+};
 
 module.exports = {
     getSkills,
     createSkill,
     updateSkill,
     deleteSkill,
-    addSkillOffer,
-    addSkillWant
+    addSkillToUser
 };

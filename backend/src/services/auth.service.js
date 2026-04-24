@@ -1,30 +1,21 @@
-const oracledb = require('oracledb');
+const db = require('../db');
 const bcrypt = require('bcrypt');
 
-// process.env.TNS_ADMIN = "C:/Users/gonga/Desktop/Portafolio/conexiondb";
-
-//  LOGIN
+// LOGIN
 const login = async (email, password) => {
     let connection;
 
     try {
-        connection = await oracledb.getConnection({
-            user: "Usuario2",
-            password: "DuocUC123456",
-            connectString: "kldhz48x2nkrpwvg_medium"
-        });
+        connection = await db.getConnection();
 
         const result = await connection.execute(
             `SELECT id, email, nombre, apellido, password_hash 
              FROM usuarios 
              WHERE email = :email`,
-            [email],
-            { outFormat: oracledb.OUT_FORMAT_OBJECT}
+            { email }
         );
 
         const user = result.rows[0];
-
-        console.log("USER DESDE BD:", user);
 
         if (!user || !user.PASSWORD_HASH) return null;
 
@@ -47,21 +38,36 @@ const login = async (email, password) => {
 };
 
 
-//  REGISTER
+// REGISTER
 const register = async (email, password, name) => {
     let connection;
 
     try {
-        connection = await oracledb.getConnection({
-            user: "Usuario2",
-            password: "DuocUC123456",
-            connectString: "kldhz48x2nkrpwvg_medium"
-        });
+        //  validaciones básicas
+        if (!email || !password || !name) {
+            throw new Error('Todos los campos son obligatorios');
+        }
 
-        //  verificar si ya existe
+        //  normalizar email
+        email = email.toLowerCase().trim();
+
+        //  validar formato email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            throw new Error('Email inválido');
+        }
+
+        //  validar password
+        if (password.length < 6) {
+            throw new Error('La contraseña debe tener al menos 6 caracteres');
+        }
+
+        connection = await db.getConnection();
+
+        // 🔍 verificar si ya existe
         const existing = await connection.execute(
             `SELECT id FROM usuarios WHERE email = :email`,
-            [email]
+            { email }
         );
 
         if (existing.rows.length > 0) return null;
@@ -69,39 +75,48 @@ const register = async (email, password, name) => {
         //  hash contraseña
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        //  separar nombre y apellido (simple)
-        const [nombre, apellido] = name.split(" ");
+        //  limpiar nombre
+        const cleanName = name.trim().replace(/\s+/g, ' ');
 
+        if (!cleanName) {
+            throw new Error('Nombre inválido');
+        }
+
+        const parts = cleanName.split(' ');
+        const nombre = parts[0];
+        const apellido = parts.slice(1).join(' ') || '';
+
+        //  insertar usuario
         const result = await connection.execute(
             `INSERT INTO usuarios (nombre, apellido, email, password_hash)
              VALUES (:nombre, :apellido, :email, :password)
              RETURNING id INTO :id`,
             {
                 nombre,
-                apellido: apellido || '',
+                apellido,
                 email,
                 password: hashedPassword,
-                id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+                id: { dir: db.oracledb.BIND_OUT, type: db.oracledb.NUMBER }
             }
         );
 
         await connection.commit();
 
-        const newId = result.outBinds.id[0];
-
         return {
-            id: newId,
+            id: result.outBinds.id[0],
             email,
-            name
+            name: cleanName
         };
 
     } catch (error) {
-        if (error.errorNum === 1){
+        //  error de duplicado (unique constraint)
+        if (error.errorNum === 1) {
             return null;
         }
 
         console.error(error);
         throw error;
+
     } finally {
         if (connection) await connection.close();
     }
