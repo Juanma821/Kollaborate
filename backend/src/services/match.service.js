@@ -1,44 +1,41 @@
-const { userSkillsOffer, userSkillsWant, users, skills } = require('../data/mockData');
+const db = require('../db');
 
-const findMatches = (userId) => {
-    userId = parseInt(userId);
+const getMatches = async (userId) => {
+    let connection;
 
-    const myWants = userSkillsWant.filter(u => u.userId === userId);
+    try {
+        connection = await db.getConnection();
 
-    let matches = [];
+        const result = await connection.execute(
+            `SELECT 
+                u.id,
+                u.nombre,
+                u.apellido,
+                h.nombre AS habilidad
+             FROM usuario_habilidades uh_busca
+             JOIN habilidades h ON uh_busca.habilidad_id = h.id
 
-    myWants.forEach(want => {
-        userSkillsOffer.forEach(offer => {
+             JOIN usuario_habilidades uh_ofrece 
+                ON uh_busca.habilidad_id = uh_ofrece.habilidad_id
 
-            if (offer.skillId === want.skillId && offer.userId !== userId) {
+             JOIN usuarios u ON uh_ofrece.usuario_id = u.id
 
-                const user = users.find(u => u.id === offer.userId);
-                const skill = skills.find(s => s.id === want.skillId);
-
-                if (user && skill){
-                    matches.push({
-                        userId: user.id,
-                        name: user.name,
-                        skill: skill.name
-                    });
-                }
-            }
-
-        });
-    });
-
-    // 🔥 LIMPIAR DUPLICADOS
-    const uniqueMatches = [];
-
-    matches.forEach(m => {
-        const exists = uniqueMatches.find(
-            u => u.userId === m.userId && u.skill === m.skill
+             WHERE uh_busca.usuario_id = :userId
+             AND uh_busca.tipo = 'Busca'
+             AND uh_ofrece.tipo = 'Ofrece'
+             AND uh_ofrece.usuario_id != :userId`,
+            { userId }
         );
 
-        if (!exists) uniqueMatches.push(m);
-    });
+        return result.rows.map(row => ({
+            id: row.ID,
+            name: `${row.NOMBRE} ${row.APELLIDO}`,
+            skill: row.HABILIDAD
+        }));
 
-    return uniqueMatches;
+    } finally {
+        if (connection) await connection.close();
+    }
 };
 
-module.exports = { findMatches };
+module.exports = { getMatches };

@@ -11,7 +11,12 @@ const getSkills = async () => {
             `SELECT id, nombre, categoria FROM habilidades`
         );
 
-        return result.rows;
+        // devolver limpio
+        return result.rows.map(row => ({
+            id: row.ID,
+            nombre: row.NOMBRE,
+            categoria: row.CATEGORIA
+        }));
 
     } finally {
         if (connection) await connection.close();
@@ -28,6 +33,16 @@ const createSkill = async (data) => {
         }
 
         connection = await db.getConnection();
+
+        //  evitar duplicados
+        const existing = await connection.execute(
+            `SELECT id FROM habilidades WHERE LOWER(nombre) = LOWER(:nombre)`,
+            { nombre: data.nombre }
+        );
+
+        if (existing.rows.length > 0) {
+            throw new Error('La skill ya existe');
+        }
 
         const result = await connection.execute(
             `INSERT INTO habilidades (nombre, categoria)
@@ -90,7 +105,7 @@ const deleteSkill = async (id) => {
     try {
         connection = await db.getConnection();
 
-        // Eliminar relaciones primero
+        // eliminar relaciones primero
         await connection.execute(
             `DELETE FROM usuario_habilidades WHERE habilidad_id = :id`,
             { id }
@@ -112,21 +127,58 @@ const deleteSkill = async (id) => {
     }
 };
 
-//  Asignar skill a usuario (Ofrece / Busca)
+// 🔹 Asignar skill a usuario (Ofrece / Busca)
 const addSkillToUser = async (data) => {
     let connection;
 
     try {
         connection = await db.getConnection();
 
-        await connection.execute(
-            `INSERT INTO usuario_habilidades (usuario_id, habilidad_id, tipo, nivel)
-             VALUES (:usuario_id, :habilidad_id, :tipo, :nivel)`,
+        //  validar usuario
+        const user = await connection.execute(
+            `SELECT id FROM usuarios WHERE id = :id`,
+            { id: data.usuario_id }
+        );
+
+        if (user.rows.length === 0) {
+            throw new Error('Usuario no existe');
+        }
+
+        // 🔍 validar skill
+        const skill = await connection.execute(
+            `SELECT id FROM habilidades WHERE id = :id`,
+            { id: data.habilidad_id }
+        );
+
+        if (skill.rows.length === 0) {
+            throw new Error('Skill no existe');
+        }
+
+        //  evitar duplicados
+        const existing = await connection.execute(
+            `SELECT id FROM usuario_habilidades
+             WHERE usuario_id = :usuario_id
+             AND habilidad_id = :habilidad_id
+             AND tipo = :tipo`,
             {
                 usuario_id: data.usuario_id,
                 habilidad_id: data.habilidad_id,
-                tipo: data.tipo,
-                nivel: data.nivel
+                tipo: data.tipo
+            }
+        );
+
+        if (existing.rows.length > 0) {
+            throw new Error('La skill ya está asignada');
+        }
+
+        //  insertar
+        await connection.execute(
+            `INSERT INTO usuario_habilidades (usuario_id, habilidad_id, tipo)
+             VALUES (:usuario_id, :habilidad_id, :tipo)`,
+            {
+                usuario_id: data.usuario_id,
+                habilidad_id: data.habilidad_id,
+                tipo: data.tipo
             }
         );
 

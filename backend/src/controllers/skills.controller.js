@@ -57,37 +57,35 @@ const deleteSkill = async (req, res) => {
     }
 };
 
-// 🔹 Usuario OFRECE skill
+//  Usuario OFRECE skill
 const addSkillOffer = async (req, res) => {
     try {
         const result = await skillsService.addSkillToUser({
             usuario_id: req.user.id,
             habilidad_id: Number(req.params.id),
-            tipo: 'Ofrece',
-            nivel: req.body.nivel
+            tipo: 'Ofrece'
         });
 
         res.json(result);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error al asignar skill' });
+        res.status(400).json({ error: error.message });
     }
 };
 
-// 🔹 Usuario BUSCA skill
+//  Usuario BUSCA skill
 const addSkillWant = async (req, res) => {
     try {
         const result = await skillsService.addSkillToUser({
             usuario_id: req.user.id,
             habilidad_id: Number(req.params.id),
-            tipo: 'Busca',
-            nivel: req.body.nivel
+            tipo: 'Busca'
         });
 
         res.json(result);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al asignar skill' });
+        console.error(error.message);
+        res.status(400).json({ error: error.message });
     }
 };
 
