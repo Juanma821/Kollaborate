@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
 //Carrusel
   carouselContainer: {
     alignItems: 'center',
-    backgroundColor: Colors.textLight,
+    backgroundColor: Colors.card,
     paddingBottom: 10,
   },
   card: {
@@ -149,8 +149,6 @@ const styles = StyleSheet.create({
   columnHomeL: {
     flex: 0.50,
     alignItems: 'center',
-    borderRightWidth: 1,
-    borderRightColor: Colors.borderLight,
     paddingLeft: 10,
   },
   imageButton: {
