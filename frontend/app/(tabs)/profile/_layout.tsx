@@ -9,7 +9,7 @@ export default function ProfileLayout() {
            headerLeft: () => null }} />
 
         <Stack.Screen name="configuration" options={{
-           headerTitle: "Configuracion",
+           headerShown: false,
            headerTitleAlign: 'center' }} />
 
         <Stack.Screen name="skills" options={{
