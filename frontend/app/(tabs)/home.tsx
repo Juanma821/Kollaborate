@@ -2,6 +2,9 @@ import * as React from "react";
 import { router } from 'expo-router';
 import { TouchableOpacity, Dimensions, StyleSheet, Text, View } from "react-native";
 
+import { Colors } from '../../assets/images/constants/Colors';
+import { globalStyles } from '../../assets/images/constants/globalStyles';
+
 import { useSharedValue } from "react-native-reanimated"; //Install
 import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated-carousel"; //Install
 
@@ -20,8 +23,8 @@ export default function Home() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Contenedor del Carrusel */}
+    <View style={globalStyles.containerApp}>
+      {/* SECCIÓN SUPERIOR: Carrusel */}
       <View style={styles.carouselContainer}>
         <Carousel
           ref={ref}
@@ -50,14 +53,14 @@ export default function Home() {
         />
       </View>
 
-      {/* Título */}     
+      {/* TÍTULO */}     
       <View style={styles.titleContainer}>
         <Text style={styles.title}>Explorar Habilidades</Text>
       </View>
 
-      {/* Acceso Rápido */}
-      <View style={styles.contentSection}>
-        <View style={styles.leftColumn}>
+      {/* SECCIÓN INFERIOR: Contenido Opciones */}
+      <View style={[globalStyles.contentSectionA, {backgroundColor: Colors.card}]}>
+        <View style={styles.columnHomeR}>
           <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/(tabs)/profile/configuration')}>
              <Text>Acceso 1</Text>
           </TouchableOpacity>
@@ -66,7 +69,7 @@ export default function Home() {
           </TouchableOpacity>  
         </View>
 
-        <View style={styles.rightColumn}>
+        <View style={styles.columnHomeL}>
           <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/(tabs)/profile/configuration')}>
              <Text>Acceso 3</Text>
           </TouchableOpacity>  
@@ -79,40 +82,37 @@ export default function Home() {
   );
 }
 
+//Estilos Propios
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  //Carrusel
+//Carrusel
   carouselContainer: {
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.textLight,
     paddingBottom: 10,
   },
   card: {
     flex: 1,
     margin: 10,
-    backgroundColor: '#ff743dff',
+    backgroundColor: Colors.colorCard,
     borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOpacity: 0.2,
     shadowRadius: 5,
   },
   cardText: {
-    color: '#fff',
+    color: Colors.textLight,
     fontSize: 24,
     fontWeight: 'bold',
   },
   subText: {
-    color: '#fff',
+    color: Colors.textLight,
     fontSize: 12,
     opacity: 0.8,
   },
-  //Paginación-Puntitos
+//Paginación-Puntitos
   paginationContainer: {
     flexDirection: 'row',
     gap: 8,
@@ -125,10 +125,10 @@ const styles = StyleSheet.create({
     height: 8,
   },
   activeDot: {
-    backgroundColor: "#ff743dff",
+    backgroundColor: Colors.primary,
     width: 20,
   },
-  //Estilo Título
+//Título
   titleContainer: {
     alignItems: 'center',
   },
@@ -136,29 +136,21 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     margin: 20,
-    color: '#333',
+    color: Colors.textDark,
   },
-  //Estilo Contenido Opciones
-  contentSection: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center', 
-    padding: 20,
-    backgroundColor: '#fff',
-  },
-  leftColumn: {
+//Contenido Opciones
+  columnHomeR: {
     flex: 0.50,
     alignItems: 'center',
     borderRightWidth: 1,
-    borderRightColor: '#f0f0f0',
+    borderRightColor: Colors.borderLight,
     paddingRight: 10,
   },
-  rightColumn: {
+  columnHomeL: {
     flex: 0.50,
     alignItems: 'center',
-    borderLeftWidth: 1,
-    borderLeftColor: '#f0f0f0',
+    borderRightWidth: 1,
+    borderRightColor: Colors.borderLight,
     paddingLeft: 10,
   },
   imageButton: {
@@ -167,7 +159,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     margin: '10%',
-    backgroundColor: '#ff743dff', 
+    backgroundColor: Colors.colorCard, 
     borderRadius: 12,
   },
 });

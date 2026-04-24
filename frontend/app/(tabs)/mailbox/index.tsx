@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
 
+import { Colors } from '../../../assets/images/constants/Colors';
+import { globalStyles } from '../../../assets/images/constants/globalStyles';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; //Install
 import { useRouter } from 'expo-router'; //Install
 import { Ionicons } from '@expo/vector-icons'; //Install
@@ -35,25 +38,25 @@ export default function Mailbox() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
       
       {/* Selector de 3 Botones */}
       <View style={styles.selectorContainer}>
         {['request', 'reply', 'message'].map((tab) => (
           <TouchableOpacity
             key={tab}
-            style={[styles.selectorButton, selectedTab === tab && styles.selectorButtonActive]}
+            style={[globalStyles.selectorButton, selectedTab === tab && globalStyles.selectorButtonActive]}
             onPress={() => setSelectedTab(tab)}
           >
-            <Text style={[styles.selectorText, selectedTab === tab && styles.selectorTextActive]}>
+            <Text style={[globalStyles.selectorText, {fontSize: 12}, selectedTab === tab && globalStyles.selectorTextActive]}>
               {tab === 'request' ? 'Solicitudes' : tab === 'reply' ? 'Respuestas' : 'Chats'}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <View style={styles.contentSection}>
-        <Text style={styles.sectionTitle}>
+      <View style={globalStyles.contentSectionB}>
+        <Text style={globalStyles.sectionTitle}>
           {selectedTab === 'request' ? 'Nuevas Solicitudes' : selectedTab === 'reply' ? 'Resolución de Solicitudes' : 'Conversaciones'}
         </Text>
         
@@ -147,63 +150,25 @@ export default function Mailbox() {
   );
 }
 
-//Estilos
+//Estilos Propios
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#f8f9fa' 
-  },
   // Selector de Pestañas
   selectorContainer: { 
     flexDirection: 'row', 
-    backgroundColor: '#fff', 
+    backgroundColor: Colors.card, 
     marginHorizontal: 20, 
     marginTop: 20, 
     borderRadius: 12, 
     padding: 4, 
     elevation: 2 
   },
-  selectorButton: { 
-    flex: 1, 
-    paddingVertical: 12, 
-    borderRadius: 10, 
-    alignItems: 'center' 
-  },
-  selectorButtonActive: { 
-    backgroundColor: '#ff743dff' 
-  },
-  selectorText: { 
-    fontSize: 12, 
-    fontWeight: '600', 
-    color: '#666' 
-  },
-  selectorTextActive: {
-     color: '#fff' 
-    },
-
   //Contenido Sección  
-  contentSection: { 
-    flex: 1, 
-    marginTop: 25, 
-    backgroundColor: '#fff', 
-    borderTopLeftRadius: 30, 
-    borderTopRightRadius: 30, 
-    paddingHorizontal: 20, 
-    paddingTop: 20 
-  },
-  sectionTitle: { 
-    fontSize: 18, 
-    fontWeight: '700', 
-    color: '#333', 
-    marginBottom: 15,
-    textAlign: 'center'    
-  },
   listItem: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     paddingVertical: 15, 
     borderBottomWidth: 1, 
-    borderBottomColor: '#f0f0f0' 
+    borderBottomColor: Colors.borderLight 
   },
   avatarPlaceholder: { 
     width: 50, 
@@ -219,11 +184,11 @@ const styles = StyleSheet.create({
   },
   itemSub: { 
     fontSize: 13, 
-    color: '#666' 
+    color: Colors.textMuted 
   },
   itemDate: { 
     fontSize: 11, 
-    color: '#aaa', 
+    color: Colors.textPlaceholder, 
     marginRight: 10 
   },
   
@@ -236,7 +201,7 @@ const styles = StyleSheet.create({
   },
   modalContent: { 
     width: '80%', 
-    backgroundColor: '#fff', 
+    backgroundColor: Colors.card, 
     borderRadius: 20, 
     padding: 25, 
     alignItems: 'center' 
@@ -257,7 +222,7 @@ const styles = StyleSheet.create({
     marginVertical: 15 
   },
   statusBadgeText: { 
-    color: '#fff', 
+    color: Colors.textLight, 
     fontWeight: 'bold' 
   },
   modalButton: { 
@@ -268,7 +233,7 @@ const styles = StyleSheet.create({
     marginTop: 10 
   },
   modalButtonText: { 
-    color: '#fff', 
+    color: Colors.textLight, 
     fontWeight: 'bold', 
     fontSize: 16 
   }

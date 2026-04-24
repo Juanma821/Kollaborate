@@ -167,7 +167,7 @@ export default function ProfileResult() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Sección Tarjeta Perfil */}
-      <View style={styles.cardContainer}>
+      <View style={globalStyles.cardContainer}>
         {/* SECCIÓN IZQUIERDA: Imagen Perfil */}
         <View style={styles.leftColumn}>
           <Image source={ProfileIcon} style={styles.profileImage} />
@@ -193,7 +193,7 @@ export default function ProfileResult() {
       </View>
 
       {/* Línea divisoria horizontal */}
-      <View style={styles.innerDivider} />
+      <View style={globalStyles.innerDivider} />
 
       {/* Sección Tarjeta Información Solicitud (EDICIÓN) */}
       <View style={styles.requestContainer}>
@@ -209,8 +209,8 @@ export default function ProfileResult() {
             />
           </View>
 
-          <View style={styles.infoGroup}>
-            <Text style={styles.label}>Modalidad</Text>
+          <View style={globalStyles.infoGroup}>
+            <Text style={globalStyles.label}>Modalidad</Text>
             <View style={styles.pickerBorder}>
               <Picker
                 selectedValue={modalidad}
@@ -249,8 +249,8 @@ export default function ProfileResult() {
         </View>
 
         {/* SECCIÓN DERECHA: Costo del servicio */}
-        <View style={styles.rightRequestColumn}>
-          <Text style={styles.tokenLabel}>Inversión</Text>
+        <View style={globalStyles.rightRequestColumn}>
+          <Text style={globalStyles.tokenLabel}>Inversión</Text>
           <Ionicons name="ticket" size={40} color="#ff743dff" />
           <Text style={styles.tokenAmountNegative}>-{costo}</Text>
           <Text style={styles.tokenSub}>Tokens</Text>
@@ -283,7 +283,7 @@ export default function ProfileResult() {
   );
 }
 
-// Estilo Backgroud y Contenedores
+// Estilo Propio
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -407,27 +407,25 @@ const styles = StyleSheet.create({
   },
 
   inputEdit: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Colors.input,
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: Colors.borderDefault,
     fontSize: 14,
-    color: '#333',
+    color: Colors.textDark,
     marginTop: 5,
   },
-
   pickerBorder: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Colors.input,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: Colors.borderDefault,
     marginTop: 5,
     overflow: 'hidden',
     justifyContent: 'center',
   },
-
   pickerSmall: {
     height: 50,
     width: '100%',

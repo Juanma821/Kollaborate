@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { Colors } from '../../../assets/images/constants/Colors';
+import { globalStyles } from '../../../assets/images/constants/globalStyles';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; //Install
 
 export default function Token() {
@@ -19,7 +22,7 @@ export default function Token() {
   const currentData = selectedTab === 'received' ? receivedData : transferredData;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
       
       {/* Sección Saldo Actual */}
       <View style={styles.balanceContainer}>
@@ -28,42 +31,42 @@ export default function Token() {
       </View>
 
       {/* Seccion Boton Recibido/Enviado */}
-      <View style={styles.selectorContainer}>
+      <View style={globalStyles.selectorContainer}>
         <TouchableOpacity
-          style={[styles.selectorButton, selectedTab === 'received' && styles.selectorButtonActive]}
+          style={[globalStyles.selectorButton, selectedTab === 'received' && globalStyles.selectorButtonActive]}
           onPress={() => setSelectedTab('received')}
         >
-          <Text style={[styles.selectorText, selectedTab === 'received' && styles.selectorTextActive]}>
+          <Text style={[globalStyles.selectorText, selectedTab === 'received' && globalStyles.selectorTextActive]}>
             Recibido
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={[styles.selectorButton, selectedTab === 'transferred' && styles.selectorButtonActive]}
+          style={[globalStyles.selectorButton, selectedTab === 'transferred' && globalStyles.selectorButtonActive]}
           onPress={() => setSelectedTab('transferred')}
         >
-          <Text style={[styles.selectorText, selectedTab === 'transferred' && styles.selectorTextActive]}>
+          <Text style={[globalStyles.selectorText, selectedTab === 'transferred' && globalStyles.selectorTextActive]}>
             Enviado
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Sección Contenido Datos Transferencia */}
-      <View style={styles.contentSection}>
-        <Text style={styles.sectionTitle}>
+      <View style={globalStyles.contentSectionB}>
+        <Text style={globalStyles.sectionTitle}>
           {selectedTab === 'received' ? 'Transferencias recibidas' : 'Transferencias enviadas'}
         </Text>
         
         <ScrollView showsVerticalScrollIndicator={false}>
           {currentData.map(item => (
-            <View key={item.id} style={styles.listItem}>
+            <View key={item.id} style={globalStyles.listItem}>
               <View>
-                <Text style={styles.itemDescription}>{item.description}</Text>
-                <Text style={styles.itemDate}>{item.date}</Text>
+                <Text style={globalStyles.itemDescription}>{item.description}</Text>
+                <Text style={globalStyles.itemDate}>{item.date}</Text>
               </View>
               <Text style={[
                 styles.itemAmount,
-                selectedTab === 'received' ? styles.positiveAmount : styles.negativeAmount
+                selectedTab === 'received' ? globalStyles.positiveAmount : globalStyles.negativeAmount
               ]}>
                 {item.amount}
               </Text>
@@ -75,98 +78,36 @@ export default function Token() {
   );
 }
 
-// Estilo Backgroud y Contenedores
+// Estilos Propios
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-
   // Estilo Container Saldo Actual
   balanceContainer: {
     paddingVertical: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#8ba5fa',
+    backgroundColor: Colors.colorCard,
     marginHorizontal: 20,
     marginBottom: 20,
     borderRadius: 12,
     padding: 4,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   balanceLabel: {
     fontSize: 16,
-    color: '#2c2525',
+    color: Colors.textBalance,
     marginBottom: 5,
   },
   balanceAmount: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.textDark,
   },
-
-  // Estilo Container Botones
-  selectorContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    borderRadius: 12,
-    padding: 4,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  selectorButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  selectorButtonActive: {
-    backgroundColor: 'rgb(61, 106, 255)',
-  },
-  selectorText: {
-    fontWeight: '600',
-    color: '#666',
-  },
-  selectorTextActive: {
-    color: '#fff',
-  },
-
   //Estilo Contenido Datos Transferencia
-  contentSection: {
-    flex: 1,
-    marginTop: 25,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingHorizontal: 25,
-    paddingTop: 25,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#222',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  listItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
   itemAmount: {
     fontSize: 16,
     fontWeight: 'bold',
   },
-  positiveAmount: { color: '#4caf50' },
-  negativeAmount: { color: '#f44336' },
-  itemDescription: { fontSize: 15, color: '#333' },
-  itemDate: { fontSize: 12, color: '#aaa', marginTop: 2 }
 });
