@@ -2,6 +2,9 @@ import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, Platform, ScrollView, KeyboardAvoidingView } from 'react-native';
 
+import { Colors } from '../assets/images/constants/Colors';
+import { globalStyles } from '../assets/images/constants/globalStyles';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; // install
 import { Picker } from '@react-native-picker/picker'; // install
 import IconApp from '../assets/images/IconApp.png';  //Import
@@ -20,14 +23,14 @@ export default function Signup() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
       style={{ flex: 1 }}
     >
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[globalStyles.containerAuth, {alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }]}>
         
         {/* SECCIÓN SUPERIOR: Logo*/}
         <View style={styles.iconContainer}>
-          <Image source={IconApp} style={styles.profileImage}/>
-          <Text style={styles.title}>Crear cuenta</Text>
+          <Image source={IconApp} style={globalStyles.profileImageAuthB}/>
+          <Text style={globalStyles.titleAuth}>Crear cuenta</Text>
           <Link href="/login"> 
-              <Text style={styles.subtitle}>¿Ya tienes una cuenta? <Text style={styles.linkText}>Inicia sesión aquí</Text></Text>
+              <Text style={globalStyles.subtitleAuth}>¿Ya tienes una cuenta? <Text style={globalStyles.linkTextAuth}>Inicia sesión aquí</Text></Text>
           </Link>
         </View>
 
@@ -37,14 +40,14 @@ export default function Signup() {
             showsVerticalScrollIndicator={false} 
             contentContainerStyle={styles.scrollContainer}
           >
-            <View style={styles.form}>
-              <Text style={styles.label}>Nombre</Text>
-              <TextInput style={styles.input} value={nombre} onChangeText={setNombre} placeholder="Tu nombre" placeholderTextColor="#aaa" />
+            <View style={globalStyles.formAuth}>
+              <Text style={globalStyles.labelAuth}>Nombre</Text>
+              <TextInput style={globalStyles.inputAuth} value={nombre} onChangeText={setNombre} placeholder="Tu nombre" placeholderTextColor="#aaa" />
 
-              <Text style={styles.label}>Apellido</Text>
-              <TextInput style={styles.input} value={apellido} onChangeText={setApellido} placeholder="Tu apellido" placeholderTextColor="#aaa" />
+              <Text style={globalStyles.labelAuth}>Apellido</Text>
+              <TextInput style={globalStyles.inputAuth} value={apellido} onChangeText={setApellido} placeholder="Tu apellido" placeholderTextColor="#aaa" />
 
-              <Text style={styles.label}>Institución</Text>
+              <Text style={globalStyles.labelAuth}>Institución</Text>
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={institucion}
@@ -60,9 +63,9 @@ export default function Signup() {
                 </Picker>
               </View>
 
-              <Text style={styles.label}>Correo Electrónico</Text>
+              <Text style={globalStyles.labelAuth}>Correo Electrónico</Text>
               <TextInput 
-                style={styles.input} 
+                style={globalStyles.inputAuth} 
                 value={email} 
                 onChangeText={setEmail} 
                 keyboardType="email-address" 
@@ -71,15 +74,15 @@ export default function Signup() {
                 placeholderTextColor="#aaa"
               />
 
-              <Text style={styles.label}>Contraseña</Text>
-              <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="********" placeholderTextColor="#aaa" secureTextEntry />
+              <Text style={globalStyles.labelAuth}>Contraseña</Text>
+              <TextInput style={globalStyles.inputAuth} value={password} onChangeText={setPassword} placeholder="********" placeholderTextColor="#aaa" secureTextEntry />
 
-              <Text style={styles.label}>Confirmar Contraseña</Text>
-              <TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} placeholder="********" placeholderTextColor="#aaa" secureTextEntry />
+              <Text style={globalStyles.labelAuth}>Confirmar Contraseña</Text>
+              <TextInput style={globalStyles.inputAuth} value={confirmPassword} onChangeText={setConfirmPassword} placeholder="********" placeholderTextColor="#aaa" secureTextEntry />
 
               {/* Botón */}
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>Registrarse</Text>
+              <TouchableOpacity style={globalStyles.buttonAuth}>
+                <Text style={globalStyles.buttonTextAuth}>Registrarse</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -89,78 +92,29 @@ export default function Signup() {
   );
 }
 
-// Estilos
+// Estilos Propios
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#25292e',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // Estilos Sección Superior: Logo
+  // Sección Superior: Logo
   iconContainer: {
     flex: 0.25, 
     alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingBottom: 10,
+    paddingBottom: 20,
   },
-  profileImage: {
-    width: 100, 
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#131313',
-    marginBottom: 15,
+  // Sección Inferior: Formulario y Botones
+  bottomSection: {
+    flex: 0.65,
+    width: '100%',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#ccc',
-    marginTop: 8,
-  },
-  linkText: {
-    color: '#ff743dff',
-    fontWeight: 'bold',
-  },
-
-// Estilos Sección Inferior: Formulario y Botones
   scrollContainer: {
     alignItems: 'center',
     paddingHorizontal: 40,
     paddingBottom: 40, 
   },
-  bottomSection: {
-    flex: 0.75,
-    width: '100%',
-  },
-  form: {
-    width: '135%',
-    maxWidth: 300,
-    gap: 15,
-    marginBottom: 20,
-    marginTop: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#aaa',
-    marginBottom: -5,
-  },
-  input: {
-    backgroundColor: '#f5f5f5',
-    width: '100%',
-    padding: 15,
-    borderRadius: 10,
-    fontSize: 16,
-    color: '#333',
-  },
 
-// Estilo Picker
+  // Picker
   pickerContainer: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.input,
     borderRadius: 10,
     width: '100%',
     overflow: 'hidden', 
@@ -168,19 +122,5 @@ const styles = StyleSheet.create({
       ios: { paddingVertical: 0 },
       android: { height: 50, justifyContent: 'center' }
     })
-  },
-  
-  button: {
-    backgroundColor: '#ff743dff',
-    width: '100%',
-    maxWidth: 300,
-    padding: 18,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });

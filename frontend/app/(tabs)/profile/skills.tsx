@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 
+import { Colors } from '../../../assets/images/constants/Colors';
+import { globalStyles } from '../../../assets/images/constants/globalStyles';
+
 import { Ionicons } from '@expo/vector-icons'; //install
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; //install
 
@@ -49,7 +52,7 @@ const insets = useSafeAreaInsets();
           <Text style={styles.sectionTitle}>Habilidades que brindo</Text>
           <View style={styles.inputRow}>
             <TextInput 
-              style={styles.input} 
+              style={[globalStyles.input,{flex: 1, padding: 12,}]} 
               placeholder="Ej: Python, Oratoria..." 
               value={inputOfrezco}
               onChangeText={setInputOfrezco}
@@ -72,7 +75,7 @@ const insets = useSafeAreaInsets();
           <Text style={styles.sectionTitle}>Habilidades que busco</Text>
           <View style={styles.inputRow}>
             <TextInput 
-              style={styles.input} 
+              style={[globalStyles.input,{flex: 1, padding: 12,}]} 
               placeholder="Ej: Matemáticas, Guitarra..." 
               value={inputBusco}
               onChangeText={setInputBusco}
@@ -93,18 +96,18 @@ const insets = useSafeAreaInsets();
   );
 }
 
-// Estilo Backgroud y Contenedores
+// Estilo Propios
 const styles = StyleSheet.create({
   container: { 
     paddingHorizontal: 20, 
     paddingBottom: 40, 
-    backgroundColor: '#fff' 
+    backgroundColor: Colors.card 
   },
   mainTitle: { 
     fontSize: 26, 
     fontWeight: 'bold', 
     marginBottom: 25, 
-    color: '#333' 
+    color: Colors.textDark 
   },
   section: { 
     marginBottom: 30 
@@ -112,7 +115,7 @@ const styles = StyleSheet.create({
   sectionTitle: { 
     fontSize: 16, 
     fontWeight: '600', 
-    color: '#666', 
+    color: Colors.textMuted, 
     marginBottom: 10 
   },
   inputRow: { 
@@ -120,23 +123,15 @@ const styles = StyleSheet.create({
     gap: 10, 
     marginBottom: 15 
   },
-  input: { 
-    flex: 1, 
-    backgroundColor: '#f5f5f5', 
-    padding: 12, 
-    borderRadius: 10, 
-    borderWidth: 1, 
-    borderColor: '#e0e0e0' 
-  },
-// Estilo Botón Añadir Habilidad
+// Botón Añadir Habilidad
   addButton: { 
-    backgroundColor: '#ff743dff', 
+    backgroundColor: Colors.colorCard, 
     padding: 10, 
     borderRadius: 10, 
     justifyContent: 'center' 
   },
 
-// Estilo Tags de Habilidades
+// Tags de Habilidades
   tagContainer: { 
     flexDirection: 'row', 
     flexWrap: 'wrap', 
@@ -150,17 +145,17 @@ const styles = StyleSheet.create({
     paddingVertical: 6, 
     borderRadius: 20, 
     borderWidth: 1, 
-    borderColor: '#ff743dff',
+    borderColor: Colors.primary,
     gap: 8
   },
   tagText: { 
-    color: '#333', 
+    color: Colors.textDark, 
     fontSize: 14, 
     fontWeight: '500' 
   },
   divider: { 
     height: 1, 
-    backgroundColor: '#f0f0f0', 
+    backgroundColor: Colors.borderLight, 
     marginBottom: 30 
   }
 });

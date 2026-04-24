@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, FlatList, ScrollView, Platform } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 
+import { Colors } from '../../../assets/images/constants/Colors';
+import { globalStyles } from '../../../assets/images/constants/globalStyles';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; //Install
 import { Ionicons } from '@expo/vector-icons'; //Install
 import DateTimePicker from '@react-native-community/datetimepicker'; //Install
@@ -82,7 +85,7 @@ export default function MBChat() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={globalStyles.containerApp}>
       <Stack.Screen options={{ title: (Array.isArray(params.nombreChat) ? params.nombreChat[0] : params.nombreChat) || 'Acuerdo de Sesión' }} />
       
       <FlatList
@@ -145,7 +148,7 @@ export default function MBChat() {
   );
 }
 
-// Estilos
+// Estilos Propios
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
@@ -169,9 +172,9 @@ const styles = StyleSheet.create({
     maxWidth: '85%',
     padding: 12,
     borderRadius: 15,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.card,
     elevation: 1,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
@@ -198,28 +201,28 @@ const styles = StyleSheet.create({
   userName: { 
     fontWeight: 'bold', 
     fontSize: 12, 
-    color: '#ff743dff', 
+    color: Colors.primary, 
     marginBottom: 4 
   },
   messageText: { 
     fontSize: 15, 
-    color: '#333', 
+    color: Colors.textDark, 
     lineHeight: 20 
   },
   timestamp: { 
     fontSize: 9, 
-    color: '#999', 
+    color: Colors.textLabel, 
     marginTop: 5, 
     textAlign: 'right' 
   },
 // Panel de acciones
   actionPanel: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.card,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     padding: 20,
     elevation: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOpacity: 0.15,
     shadowRadius: 10,
   },
@@ -238,14 +241,14 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ff743dff',
+    backgroundColor: Colors.colorCard,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
     gap: 8,
   },
   chipText: { 
-    color: '#fff', 
+    color: Colors.textLight, 
     fontSize: 14, 
     fontWeight: '600' 
   },

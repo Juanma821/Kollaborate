@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, Switch, ScrollView, TouchableOpacity } from 'react-native';
 
+import { Colors } from '../../../assets/images/constants/Colors';
+import { globalStyles } from '../../../assets/images/constants/globalStyles';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; //install
 import Feather from '@expo/vector-icons/Feather'; //install
 
@@ -14,7 +17,7 @@ export default function Configuration() {
     };
 
   return (
-    <ScrollView style={[styles.container, { paddingTop: insets.top + 5 }]}>
+    <ScrollView style={[globalStyles.containerApp, { padding: 20, paddingTop: insets.top + 5 }]}>
       <View style={styles.settingItem}>
         <Text style={styles.settingLabel}>Modo oscuro</Text>
         <Switch
@@ -39,19 +42,8 @@ export default function Configuration() {
   );
 }
 
-// Estilo Backgroud y Contenedores
+// Estilos Propios
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#f8f9fa', 
-    padding: 20 
-  },
-  header: { 
-    fontSize: 24, 
-    fontWeight: 'bold', 
-    marginBottom: 20, 
-    marginTop: 40 
-  },
 // Estilo Opciones de Configuración
   settingItem: {
     flexDirection: 'row',

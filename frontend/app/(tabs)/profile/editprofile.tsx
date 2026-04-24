@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 
+import { Colors } from '../../../assets/images/constants/Colors';
+import { globalStyles } from '../../../assets/images/constants/globalStyles';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; //install
 import DateTimePicker from '@react-native-community/datetimepicker'; //install
 import Checkbox from 'expo-checkbox'; //install
@@ -45,27 +48,27 @@ const insets = useSafeAreaInsets();
       style={{ flex: 1, backgroundColor: '#fff' }}
     >
       <ScrollView 
-        contentContainerStyle={[styles.scrollContainer, { paddingTop: insets.top + 20 }]}
+        contentContainerStyle={[globalStyles.scrollContainer, { paddingTop: insets.top + 20 }]}
       >
 
         {/* GRUPO DE INPUTS */}
         <View style={styles.form}>
           
           <Text style={styles.label}>Nombre</Text>
-          <TextInput style={styles.input} value={nombre} onChangeText={setNombre} placeholder="Tu nombre" />
+          <TextInput style={[globalStyles.input, {padding: 15,fontSize: 16,}]} value={nombre} onChangeText={setNombre} placeholder="Tu nombre" />
 
           <Text style={styles.label}>Apellido</Text>
-          <TextInput style={styles.input} value={apellido} onChangeText={setApellido} placeholder="Tu apellido" />
+          <TextInput style={[globalStyles.input, {padding: 15,fontSize: 16,}]} value={apellido} onChangeText={setApellido} placeholder="Tu apellido" />
 
           <Text style={styles.label}>Alias</Text>
-          <TextInput style={styles.input} value={alias} onChangeText={setAlias} placeholder="@ejemplo" />
+          <TextInput style={[globalStyles.input, {padding: 15,fontSize: 16,}]} value={alias} onChangeText={setAlias} placeholder="@ejemplo" />
 
           <Text style={styles.label}>Cumpleaños</Text>
           <TouchableOpacity 
             style={styles.inputSimulado} 
             onPress={() => setMostrarPicker(true)}
           >
-            <Text style={styles.inputText}>{textoFecha}</Text>
+            <Text style={globalStyles.inputText}>{textoFecha}</Text>
           </TouchableOpacity>
 
           {/* mostrarPicker = true */}
@@ -98,7 +101,7 @@ const insets = useSafeAreaInsets();
 
           <Text style={styles.label}>Correo Electrónico</Text>
           <TextInput 
-            style={styles.input} 
+            style={[globalStyles.input, {padding: 15,fontSize: 16,}]} 
             value={email} 
             onChangeText={setEmail} 
             keyboardType="email-address" 
@@ -107,10 +110,10 @@ const insets = useSafeAreaInsets();
           />
 
           <Text style={styles.label}>Contraseña</Text>
-          <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="********" />
+          <TextInput style={[globalStyles.input, {padding: 15,fontSize: 16,}]} value={password} onChangeText={setPassword} placeholder="********" />
 
           <Text style={styles.label}>Confirmar Contraseña</Text>
-          <TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} placeholder="********" />
+          <TextInput style={[globalStyles.input, {padding: 15,fontSize: 16,}]} value={confirmPassword} onChangeText={setConfirmPassword} placeholder="********" />
 
         </View>
 
@@ -143,12 +146,9 @@ const insets = useSafeAreaInsets();
   );
 }
 
-// Estilo Backgroud y Contenedores
+// Estilos Propios
 const styles = StyleSheet.create({
-  scrollContainer: {
-    paddingHorizontal: 25,
-    paddingBottom: 40,
-  },
+//Formulario
   form: {
     gap: 15,
     marginBottom: 25,
@@ -156,39 +156,27 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: Colors.textMuted,
     marginBottom: -10, 
   },
-  input: {
-    backgroundColor: '#f5f5f5',
-    padding: 15,
-    borderRadius: 10,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
   inputSimulado: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.input,
     padding: 15,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: Colors.borderDark,
     justifyContent: 'center',
-  },
-  inputText: {
-    fontSize: 16,
-    color: '#333',
   },
 // Estilo Botón Guardar Cambios
   saveButton: {
-    backgroundColor: '#ff743dff',
+    backgroundColor: Colors.colorCard,
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 30,
   },
   saveButtonText: {
-    color: '#fff',
+    color: Colors.textLight,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -205,10 +193,10 @@ const styles = StyleSheet.create({
 
 // Estilo Picker
   pickerContainer: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.input,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: Colors.borderDark,
     justifyContent: 'center',
     // IOS
     ...Platform.select({

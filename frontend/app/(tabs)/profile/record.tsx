@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { Colors } from '../../../assets/images/constants/Colors';
+import { globalStyles } from '../../../assets/images/constants/globalStyles';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; //install
 
 export default function Record() {
@@ -25,50 +28,50 @@ export default function Record() {
   const currentData = selectedTab === 'day' ? dayData : selectedTab === 'month' ? monthData : yearData;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
       
       {/* Seccion Botones Dia, Mes y Año */}
-      <View style={styles.selectorContainer}>
+      <View style={globalStyles.selectorContainer}>
         <TouchableOpacity
-          style={[styles.selectorButton, selectedTab === 'day' && styles.selectorButtonActive]}
+          style={[globalStyles.selectorButton, selectedTab === 'day' && globalStyles.selectorButtonActive]}
           onPress={() => setSelectedTab('day')}
         >
-          <Text style={[styles.selectorText, selectedTab === 'day' && styles.selectorTextActive]}>
+          <Text style={[globalStyles.selectorText, selectedTab === 'day' && globalStyles.selectorTextActive]}>
             Día
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={[styles.selectorButton, selectedTab === 'month' && styles.selectorButtonActive]}
+          style={[globalStyles.selectorButton, selectedTab === 'month' && globalStyles.selectorButtonActive]}
           onPress={() => setSelectedTab('month')}
         >
-          <Text style={[styles.selectorText, selectedTab === 'month' && styles.selectorTextActive]}>
+          <Text style={[globalStyles.selectorText, selectedTab === 'month' && globalStyles.selectorTextActive]}>
             Mes
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={[styles.selectorButton, selectedTab === 'year' && styles.selectorButtonActive]}
+          style={[globalStyles.selectorButton, selectedTab === 'year' && globalStyles.selectorButtonActive]}
           onPress={() => setSelectedTab('year')}
         >
-          <Text style={[styles.selectorText, selectedTab === 'year' && styles.selectorTextActive]}>
+          <Text style={[globalStyles.selectorText, selectedTab === 'year' && globalStyles.selectorTextActive]}>
             Año
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Sección Contenido Datos Transferencia */}
-      <View style={styles.contentSection}>
-        <Text style={styles.sectionTitle}>
+      <View style={globalStyles.contentSectionB}>
+        <Text style={globalStyles.sectionTitle}>
           {selectedTab === 'day' ? 'Actividades' : selectedTab === 'month' ? 'Actividades' : 'Actividades'}
         </Text>
         
         <ScrollView showsVerticalScrollIndicator={false}>
           {currentData.map(item => (
-            <View key={item.id} style={styles.listItem}>
+            <View key={item.id} style={globalStyles.listItem}>
               <View>
-                <Text style={styles.itemDescription}>{item.description}</Text>
-                <Text style={styles.itemDate}>{item.date}</Text>
+                <Text style={globalStyles.itemDescription}>{item.description}</Text>
+                <Text style={globalStyles.itemDate}>{item.date}</Text>
               </View>
             </View>
           ))}
@@ -77,67 +80,3 @@ export default function Record() {
     </View>
   );
 }
-
-// Estilo Backgroud y Contenedores
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-
-  // Estilo Container Botones
-  selectorContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    marginHorizontal: 20,
-    borderRadius: 12,
-    padding: 4,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  selectorButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  selectorButtonActive: {
-    backgroundColor: 'rgb(61, 106, 255)',
-  },
-  selectorText: {
-    fontWeight: '600',
-    color: '#666',
-  },
-  selectorTextActive: {
-    color: '#fff',
-  },
-
-  //Estilo Contenido Datos dia, mes y año
-  contentSection: {
-    flex: 1,
-    marginTop: 25,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingHorizontal: 25,
-    paddingTop: 25,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#222',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  listItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  itemDescription: { fontSize: 15, color: '#333' },
-  itemDate: { fontSize: 12, color: '#aaa', marginTop: 2 }
-});
