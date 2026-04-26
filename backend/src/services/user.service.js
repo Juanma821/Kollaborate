@@ -34,7 +34,6 @@ const getUserById = async (id) => {
             email: user.EMAIL,
             nombre: user.NOMBRE,
             apellido: user.APELLIDO,
-            name: `${user.NOMBRE} ${user.APELLIDO || ''}`.trim(),
             alias: user.ALIAS,
             reputacion: user.REPUTACION_PROMEDIO || 0,
             foto: user.FOTO_URL,

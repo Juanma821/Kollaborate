@@ -37,7 +37,6 @@ const login = async (email, password) => {
             email: user.EMAIL,
             nombre: user.NOMBRE,
             apellido: user.APELLIDO,
-            name: `${user.NOMBRE} ${user.APELLIDO || ''}`.trim(),
             alias: user.ALIAS,
             rol: user.ROL
         };
