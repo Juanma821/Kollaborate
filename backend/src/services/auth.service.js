@@ -1,7 +1,10 @@
 const db = require('../db');
 const bcrypt = require('bcrypt');
 
+
+// =========================
 // LOGIN
+// =========================
 const login = async (email, password) => {
     let connection;
 
@@ -11,7 +14,7 @@ const login = async (email, password) => {
         }
 
         email = email.toLowerCase().trim();
-        
+
         connection = await db.getConnection();
 
         const result = await connection.execute(
@@ -32,6 +35,8 @@ const login = async (email, password) => {
         return {
             id: user.ID,
             email: user.EMAIL,
+            nombre: user.NOMBRE,
+            apellido: user.APELLIDO,
             name: `${user.NOMBRE} ${user.APELLIDO || ''}`.trim(),
             alias: user.ALIAS,
             rol: user.ROL
@@ -40,39 +45,41 @@ const login = async (email, password) => {
     } catch (error) {
         console.error(error);
         throw error;
+
     } finally {
         if (connection) await connection.close();
     }
 };
 
 
+// =========================
 // REGISTER
-const register = async (email, password, name, alias) => {
+// =========================
+const register = async (email, password, nombre, apellido, alias) => {
     let connection;
 
     try {
-        //  validaciones básicas
-        if (!email || !password || !name) {
+        // Validaciones básicas
+        if (!email || !password || !nombre || !apellido) {
             throw new Error('Todos los campos son obligatorios');
         }
 
-        //  normalizar email
         email = email.toLowerCase().trim();
 
-        //  validar formato email
+        // Validar email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             throw new Error('Email inválido');
         }
 
-        //  validar password
+        // Validar password
         if (password.length < 6) {
             throw new Error('La contraseña debe tener al menos 6 caracteres');
         }
 
         connection = await db.getConnection();
 
-        //  verificar si ya existe
+        // Verificar email existente
         const existing = await connection.execute(
             `SELECT id FROM usuarios WHERE email = :email`,
             { email }
@@ -83,9 +90,7 @@ const register = async (email, password, name, alias) => {
         // Normalizar alias
         if (alias) {
             alias = alias.trim().toLowerCase();
-        }
 
-        if (alias) {
             const existingAlias = await connection.execute(
                 `SELECT id FROM usuarios WHERE alias = :alias`,
                 { alias }
@@ -96,28 +101,17 @@ const register = async (email, password, name, alias) => {
             }
         }
 
-        //  hash contraseña
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        //  limpiar nombre
-        const cleanName = name.trim().replace(/\s+/g, ' ');
-
-        if (!cleanName) {
-            throw new Error('Nombre inválido');
-        }
-
-        const parts = cleanName.split(' ');
-        const nombre = parts[0];
-        const apellido = parts.slice(1).join(' ') || '';
-
-        //  insertar usuario
+        // INSERT usuario
         const result = await connection.execute(
             `INSERT INTO usuarios (nombre, apellido, email, password_hash, alias)
              VALUES (:nombre, :apellido, :email, :password, :alias)
              RETURNING id INTO :id`,
             {
-                nombre,
-                apellido,
+                nombre: nombre.trim(),
+                apellido: apellido.trim(),
                 email,
                 password: hashedPassword,
                 alias: alias || null,
@@ -130,14 +124,14 @@ const register = async (email, password, name, alias) => {
         return {
             id: result.outBinds.id[0],
             email,
-            name: cleanName,
+            nombre: nombre.trim(),
+            apellido: apellido.trim(),
             alias: alias || null
         };
 
     } catch (error) {
-        //  error de duplicado (unique constraint)
         if (error.errorNum === 1) {
-            return null;
+            return null; // duplicado
         }
 
         console.error(error);
