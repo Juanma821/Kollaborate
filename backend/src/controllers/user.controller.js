@@ -34,4 +34,22 @@ const updateUser = async (req, res) => {
     }
 };
 
-module.exports = { getUser, updateUser };
+const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user.id;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'Faltan campos obligatorios' });
+        }
+
+        const result = await userService.updatePassword(userId, currentPassword, newPassword);
+
+        res.json(result);
+    } catch (error) {
+        console.error("Error en changePassword Controller:", error);
+        res.status(400).json({ error: error.message });
+    }
+};
+
+module.exports = { getUser, updateUser, changePassword };
