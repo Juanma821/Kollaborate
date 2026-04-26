@@ -395,5 +395,10 @@ export const globalStyles = StyleSheet.create({
         fontWeight: 'bold' 
     },
     
-
+    //Pagina Configuration(Index)/EditProfile
+    label2: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.textMuted,
+    },
 });
