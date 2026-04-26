@@ -11,6 +11,7 @@ const getMatches = async (userId) => {
                 u.id,
                 u.nombre,
                 u.apellido,
+                u.alias,
                 h.nombre AS habilidad
              FROM usuario_habilidades uh_busca
              JOIN habilidades h ON uh_busca.habilidad_id = h.id
@@ -29,7 +30,7 @@ const getMatches = async (userId) => {
 
         return result.rows.map(row => ({
             id: row.ID,
-            name: `${row.NOMBRE} ${row.APELLIDO}`,
+            name: row.ALIAS || `${row.NOMBRE} ${row.APELLIDO}`,
             skill: row.HABILIDAD
         }));
 

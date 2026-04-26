@@ -6,10 +6,16 @@ const login = async (email, password) => {
     let connection;
 
     try {
+        if (!email || !password) {
+            throw new Error('Email y contraseña requeridos');
+        }
+
+        email = email.toLowerCase().trim();
+        
         connection = await db.getConnection();
 
         const result = await connection.execute(
-            `SELECT id, email, nombre, apellido, password_hash 
+            `SELECT id, email, nombre, apellido, alias, rol, password_hash 
              FROM usuarios 
              WHERE email = :email`,
             { email }
@@ -26,7 +32,9 @@ const login = async (email, password) => {
         return {
             id: user.ID,
             email: user.EMAIL,
-            name: `${user.NOMBRE} ${user.APELLIDO || ''}`.trim()
+            name: `${user.NOMBRE} ${user.APELLIDO || ''}`.trim(),
+            alias: user.ALIAS,
+            rol: user.ROL
         };
 
     } catch (error) {
@@ -39,7 +47,7 @@ const login = async (email, password) => {
 
 
 // REGISTER
-const register = async (email, password, name) => {
+const register = async (email, password, name, alias) => {
     let connection;
 
     try {
@@ -64,13 +72,29 @@ const register = async (email, password, name) => {
 
         connection = await db.getConnection();
 
-        // 🔍 verificar si ya existe
+        //  verificar si ya existe
         const existing = await connection.execute(
             `SELECT id FROM usuarios WHERE email = :email`,
             { email }
         );
 
         if (existing.rows.length > 0) return null;
+
+        // Normalizar alias
+        if (alias) {
+            alias = alias.trim().toLowerCase();
+        }
+
+        if (alias) {
+            const existingAlias = await connection.execute(
+                `SELECT id FROM usuarios WHERE alias = :alias`,
+                { alias }
+            );
+
+            if (existingAlias.rows.length > 0) {
+                throw new Error('El alias ya está en uso');
+            }
+        }
 
         //  hash contraseña
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -88,14 +112,15 @@ const register = async (email, password, name) => {
 
         //  insertar usuario
         const result = await connection.execute(
-            `INSERT INTO usuarios (nombre, apellido, email, password_hash)
-             VALUES (:nombre, :apellido, :email, :password)
+            `INSERT INTO usuarios (nombre, apellido, email, password_hash, alias)
+             VALUES (:nombre, :apellido, :email, :password, :alias)
              RETURNING id INTO :id`,
             {
                 nombre,
                 apellido,
                 email,
                 password: hashedPassword,
+                alias: alias || null,
                 id: { dir: db.oracledb.BIND_OUT, type: db.oracledb.NUMBER }
             }
         );
@@ -105,7 +130,8 @@ const register = async (email, password, name) => {
         return {
             id: result.outBinds.id[0],
             email,
-            name: cleanName
+            name: cleanName,
+            alias: alias || null
         };
 
     } catch (error) {

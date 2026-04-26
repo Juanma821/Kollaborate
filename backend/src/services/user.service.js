@@ -4,7 +4,9 @@ const isValidEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
-// GET usuario
+
+//  GET USUARIO
+// =========================
 const getUserById = async (id) => {
     let connection;
 
@@ -12,7 +14,13 @@ const getUserById = async (id) => {
         connection = await db.getConnection();
 
         const result = await connection.execute(
-            `SELECT id, email, nombre, apellido
+            `SELECT 
+                id, email, nombre, apellido,
+                alias,
+                reputacion_promedio,
+                foto_url,
+                fecha_nacimiento,
+                rol
              FROM usuarios
              WHERE id = :id`,
             { id }
@@ -24,7 +32,12 @@ const getUserById = async (id) => {
         return {
             id: user.ID,
             email: user.EMAIL,
-            name: `${user.NOMBRE} ${user.APELLIDO || ''}`.trim()
+            name: `${user.NOMBRE} ${user.APELLIDO || ''}`.trim(),
+            alias: user.ALIAS,
+            reputacion: user.REPUTACION_PROMEDIO || 0,
+            foto: user.FOTO_URL,
+            fecha_nacimiento: user.FECHA_NACIMIENTO,
+            rol: user.ROL
         };
 
     } finally {
@@ -32,14 +45,17 @@ const getUserById = async (id) => {
     }
 };
 
-// UPDATE
+
+
+//  UPDATE USUARIO
+// =========================
 const updateUser = async (id, data) => {
     let connection;
 
     try {
         connection = await db.getConnection();
 
-        //  validaciones
+        //  Validaciones básicas
         if (!data.name || !data.email) {
             throw new Error('Nombre y email son obligatorios');
         }
@@ -48,32 +64,47 @@ const updateUser = async (id, data) => {
             throw new Error('Email inválido');
         }
 
-        // separar nombre
+        //  Separar nombre
         const parts = data.name.trim().split(' ');
         const nombre = parts[0];
         const apellido = parts.slice(1).join(' ') || '';
 
-        // verificar duplicado
-        const existing = await connection.execute(
+        //  Validar email duplicado
+        const existingEmail = await connection.execute(
             `SELECT id FROM usuarios WHERE email = :email AND id != :id`,
             { email: data.email, id }
         );
 
-        if (existing.rows.length > 0) {
+        if (existingEmail.rows.length > 0) {
             throw new Error('El email ya está en uso');
         }
 
+        //  Validar alias duplicado (si viene)
+        if (data.alias) {
+            const existingAlias = await connection.execute(
+                `SELECT id FROM usuarios WHERE alias = :alias AND id != :id`,
+                { alias: data.alias, id }
+            );
+
+            if (existingAlias.rows.length > 0) {
+                throw new Error('El alias ya está en uso');
+            }
+        }
+
+        //  Update
         const result = await connection.execute(
             `UPDATE usuarios
              SET nombre = :nombre,
                  apellido = :apellido,
-                 email = :email
+                 email = :email,
+                 alias = :alias
              WHERE id = :id`,
             {
                 id,
                 nombre,
                 apellido,
-                email: data.email
+                email: data.email,
+                alias: data.alias || null
             }
         );
 

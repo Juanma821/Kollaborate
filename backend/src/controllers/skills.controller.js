@@ -1,6 +1,6 @@
 const skillsService = require('../services/skills.service');
 
-// 🔹 GET todas
+//  GET todas
 const getSkills = async (req, res) => {
     try {
         const skills = await skillsService.getSkills();
@@ -11,7 +11,7 @@ const getSkills = async (req, res) => {
     }
 };
 
-// 🔹 CREATE
+//  CREATE
 const createSkill = async (req, res) => {
     try {
         const skill = await skillsService.createSkill(req.body);
@@ -22,7 +22,7 @@ const createSkill = async (req, res) => {
     }
 };
 
-// 🔹 UPDATE
+//  UPDATE
 const updateSkill = async (req, res) => {
     try {
         const skill = await skillsService.updateSkill(
@@ -41,7 +41,7 @@ const updateSkill = async (req, res) => {
     }
 };
 
-// 🔹 DELETE
+//  DELETE
 const deleteSkill = async (req, res) => {
     try {
         const result = await skillsService.deleteSkill(Number(req.params.id));
