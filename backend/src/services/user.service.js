@@ -1,4 +1,5 @@
 const db = require('../db');
+const bcrypt = require('bcrypt');
 
 const isValidEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -116,7 +117,51 @@ const updateUser = async (id, data) => {
     }
 };
 
+//  UPDATE PASSWORD
+// =========================
+const updatePassword = async (id, currentPassword, newPassword) => {
+    let connection;
+    try {
+        connection = await db.getConnection();
+
+        // Buscar Contraseña
+        const result = await connection.execute(
+            `SELECT password_hash FROM usuarios WHERE id = :id`,
+            { id }
+        );
+
+        if (result.rows.length === 0) throw new Error('Usuario no encontrado');
+
+        const hashedPassword = result.rows[0].PASSWORD_HASH;
+
+        // Comparar Contraseña
+        const isMatch = await bcrypt.compare(currentPassword, hashedPassword);
+        if (!isMatch) {
+            throw new Error('La contraseña actual es incorrecta');
+        }
+
+        // Encriptar Nueva Contraseña
+        const salt = await bcrypt.genSalt(10);
+        const newHashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Actualizar
+        await connection.execute(
+            `UPDATE usuarios SET password_hash = :password_hash WHERE id = :id`,
+            { password_hash: newHashedPassword, id },
+            { autoCommit: true }
+        );
+
+        return { success: true, message: 'Contraseña actualizada correctamente' };
+
+    } catch (error) {
+        throw error;
+    } finally {
+        if (connection) await connection.close();
+    }
+};
+
 module.exports = {
     getUserById,
-    updateUser
+    updateUser,
+    updatePassword
 };

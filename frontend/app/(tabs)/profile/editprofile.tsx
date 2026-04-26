@@ -123,16 +123,16 @@ export default function EditProfile() {
         {/* Formulario*/}
         <View style={styles.form}>
 
-          <Text style={styles.label}>Nombre</Text>
+          <Text style={[globalStyles.label,{marginBottom: -10,}]}>Nombre</Text>
           <TextInput style={[globalStyles.input, { padding: 15, fontSize: 16, }]} value={nombre} onChangeText={setNombre} placeholder="Tu nombre" />
 
-          <Text style={styles.label}>Apellido</Text>
+          <Text style={[globalStyles.label,{marginBottom: -10,}]}>Apellido</Text>
           <TextInput style={[globalStyles.input, { padding: 15, fontSize: 16, }]} value={apellido} onChangeText={setApellido} placeholder="Tu apellido" />
 
-          <Text style={styles.label}>Alias</Text>
+          <Text style={[globalStyles.label,{marginBottom: -10,}]}>Alias</Text>
           <TextInput style={[globalStyles.input, { padding: 15, fontSize: 16, }]} value={alias} onChangeText={setAlias} placeholder="@ejemplo" />
 
-          <Text style={styles.label}>Cumpleaños</Text>
+          <Text style={[globalStyles.label,{marginBottom: -10,}]}>Cumpleaños</Text>
           <TouchableOpacity style={styles.inputSimulado} onPress={() => setMostrarPicker(true)}>
             <Text style={globalStyles.inputText}>{textoFecha}</Text>
           </TouchableOpacity>
@@ -149,7 +149,7 @@ export default function EditProfile() {
           )}
 
           {/* --- SECCIÓN INSTITUCIÓN (PICKER) --- */}
-          <Text style={styles.label}>Institución</Text>
+          <Text style={[globalStyles.label,{marginBottom: -10,}]}>Institución</Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={institucionId}
@@ -163,7 +163,7 @@ export default function EditProfile() {
             </Picker>
           </View>
 
-          <Text style={styles.label}>Correo Electrónico</Text>
+          <Text style={[globalStyles.label,{marginBottom: -10,}]}>Correo Electrónico</Text>
           <TextInput 
             style={[globalStyles.input, {padding: 15, fontSize: 16}]} 
             value={email} 
@@ -179,7 +179,7 @@ export default function EditProfile() {
             style={styles.checkbox}
             color={usarAliasVisualizacion ? '#ff743dff' : undefined}
           />
-          <Text style={styles.label}>Usar alias como nombre de visualización</Text>
+          <Text style={[globalStyles.label,{marginBottom: -10,}]}>Usar alias como nombre de visualización</Text>
         </View>
 
         <View style={styles.checkboxContainer}>
@@ -189,7 +189,7 @@ export default function EditProfile() {
             style={styles.checkbox}
             color={publicarAfiliacion ? '#ff743dff' : undefined}
           />
-          <Text style={styles.label}>Hacer pública la afiliación académica</Text>
+          <Text style={[globalStyles.label,{marginBottom: -10,}]}>Hacer pública la afiliación académica</Text>
         </View>
       
 
@@ -217,12 +217,6 @@ const styles = StyleSheet.create({
   form: {
     gap: 15,
     marginBottom: 25,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textMuted,
-    marginBottom: -10,
   },
   inputSimulado: {
     backgroundColor: Colors.input,
