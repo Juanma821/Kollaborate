@@ -32,6 +32,8 @@ const getUserById = async (id) => {
         return {
             id: user.ID,
             email: user.EMAIL,
+            nombre: user.NOMBRE,
+            apellido: user.APELLIDO,
             name: `${user.NOMBRE} ${user.APELLIDO || ''}`.trim(),
             alias: user.ALIAS,
             reputacion: user.REPUTACION_PROMEDIO || 0,
@@ -51,12 +53,11 @@ const getUserById = async (id) => {
 // =========================
 const updateUser = async (id, data) => {
     let connection;
-
     try {
         connection = await db.getConnection();
 
-        //  Validaciones básicas
-        if (!data.name || !data.email) {
+        // Validaciones básicas
+        if (!data.nombre || !data.email) {
             throw new Error('Nombre y email son obligatorios');
         }
 
@@ -64,56 +65,54 @@ const updateUser = async (id, data) => {
             throw new Error('Email inválido');
         }
 
-        //  Separar nombre
-        const parts = data.name.trim().split(' ');
-        const nombre = parts[0];
-        const apellido = parts.slice(1).join(' ') || '';
-
-        //  Validar email duplicado
-        const existingEmail = await connection.execute(
+        // Verificar duplicado de Email
+        const existing = await connection.execute(
             `SELECT id FROM usuarios WHERE email = :email AND id != :id`,
             { email: data.email, id }
         );
 
-        if (existingEmail.rows.length > 0) {
+        if (existing.rows.length > 0) {
             throw new Error('El email ya está en uso');
         }
 
-        //  Validar alias duplicado (si viene)
-        if (data.alias) {
+        // Verificar duplicado de Alias
+        if (data.alias && data.alias.trim() !== "") {
             const existingAlias = await connection.execute(
                 `SELECT id FROM usuarios WHERE alias = :alias AND id != :id`,
                 { alias: data.alias, id }
             );
 
             if (existingAlias.rows.length > 0) {
-                throw new Error('El alias ya está en uso');
+                throw new Error('Este alias ya está siendo usado por otro usuario');
             }
         }
 
-        //  Update
+        // Update
+        const sql = `
+            UPDATE usuarios
+            SET nombre = :nombre,
+                apellido = :apellido,
+                email = :email,
+                alias = :alias,
+                institucion_id = :institucion_id,
+                fecha_nacimiento = TO_DATE(:fecha_nacimiento, 'YYYY-MM-DD')
+            WHERE id = :id`;
+
         const result = await connection.execute(
-            `UPDATE usuarios
-             SET nombre = :nombre,
-                 apellido = :apellido,
-                 email = :email,
-                 alias = :alias
-             WHERE id = :id`,
+            sql,
             {
                 id,
-                nombre,
-                apellido,
+                nombre: data.nombre,
+                apellido: data.apellido,
                 email: data.email,
-                alias: data.alias || null
-            }
+                alias: data.alias || null,
+                institucion_id: data.institucion_id || null,
+                fecha_nacimiento: data.fecha_nacimiento
+            },
+            { autoCommit: true }
         );
 
-        await connection.commit();
-
-        if (result.rowsAffected === 0) return null;
-
         return await getUserById(id);
-
     } finally {
         if (connection) await connection.close();
     }
