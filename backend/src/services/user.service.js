@@ -57,11 +57,12 @@ const updateUser = async (id, data) => {
         connection = await db.getConnection();
 
         // Validaciones básicas
-        if (!data.nombre || !data.email) {
-            throw new Error('Nombre y email son obligatorios');
+        if (!data.nombre || !data.apellido) {
+            throw new Error('Nombre y apellido son obligatorios');
         }
 
-        if (!isValidEmail(data.email)) {
+        //Validacion Email
+        if (data.email && !isValidEmail(data.email)) {
             throw new Error('Email inválido');
         }
 
@@ -92,7 +93,6 @@ const updateUser = async (id, data) => {
             UPDATE usuarios
             SET nombre = :nombre,
                 apellido = :apellido,
-                email = :email,
                 alias = :alias,
                 institucion_id = :institucion_id,
                 fecha_nacimiento = TO_DATE(:fecha_nacimiento, 'YYYY-MM-DD')
@@ -104,7 +104,6 @@ const updateUser = async (id, data) => {
                 id,
                 nombre: data.nombre,
                 apellido: data.apellido,
-                email: data.email,
                 alias: data.alias || null,
                 institucion_id: data.institucion_id || null,
                 fecha_nacimiento: data.fecha_nacimiento
