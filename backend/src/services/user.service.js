@@ -53,30 +53,31 @@ const getUserById = async (id) => {
 // =========================
 const updateUser = async (id, data) => {
     let connection;
+
     try {
         connection = await db.getConnection();
 
-        // Validaciones básicas
         if (!data.nombre || !data.apellido) {
             throw new Error('Nombre y apellido son obligatorios');
         }
 
-        //Validacion Email
-        if (data.email && !isValidEmail(data.email)) {
-            throw new Error('Email inválido');
+        // Validar email SOLO si viene
+        if (data.email) {
+            if (!isValidEmail(data.email)) {
+                throw new Error('Email inválido');
+            }
+
+            const existing = await connection.execute(
+                `SELECT id FROM usuarios WHERE email = :email AND id != :id`,
+                { email: data.email, id }
+            );
+
+            if (existing.rows.length > 0) {
+                throw new Error('El email ya está en uso');
+            }
         }
 
-        // Verificar duplicado de Email
-        const existing = await connection.execute(
-            `SELECT id FROM usuarios WHERE email = :email AND id != :id`,
-            { email: data.email, id }
-        );
-
-        if (existing.rows.length > 0) {
-            throw new Error('El email ya está en uso');
-        }
-
-        // Verificar duplicado de Alias
+        // Validar alias
         if (data.alias && data.alias.trim() !== "") {
             const existingAlias = await connection.execute(
                 `SELECT id FROM usuarios WHERE alias = :alias AND id != :id`,
@@ -84,34 +85,41 @@ const updateUser = async (id, data) => {
             );
 
             if (existingAlias.rows.length > 0) {
-                throw new Error('Este alias ya está siendo usado por otro usuario');
+                throw new Error('Este alias ya está siendo usado');
             }
         }
 
-        // Update
         const sql = `
             UPDATE usuarios
             SET nombre = :nombre,
                 apellido = :apellido,
+                email = COALESCE(:email, email),
                 alias = :alias,
                 institucion_id = :institucion_id,
-                fecha_nacimiento = TO_DATE(:fecha_nacimiento, 'YYYY-MM-DD')
-            WHERE id = :id`;
+                fecha_nacimiento = CASE
+                    WHEN :fecha_nacimiento IS NOT NULL
+                    THEN TO_DATE(:fecha_nacimiento, 'YYYY-MM-DD')
+                    ELSE fecha_nacimiento
+                END
+            WHERE id = :id
+        `;
 
-        const result = await connection.execute(
+        await connection.execute(
             sql,
             {
                 id,
-                nombre: data.nombre,
-                apellido: data.apellido,
+                nombre: data.nombre.trim(),
+                apellido: data.apellido.trim(),
+                email: data.email ? data.email.toLowerCase().trim() : null,
                 alias: data.alias || null,
                 institucion_id: data.institucion_id || null,
-                fecha_nacimiento: data.fecha_nacimiento
+                fecha_nacimiento: data.fecha_nacimiento || null
             },
             { autoCommit: true }
         );
 
         return await getUserById(id);
+
     } finally {
         if (connection) await connection.close();
     }

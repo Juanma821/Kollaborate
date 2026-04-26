@@ -65,6 +65,10 @@ const register = async (email, password, nombre, apellido, alias) => {
 
         email = email.toLowerCase().trim();
 
+        if (alias){
+            alias = alias.trim().toLowerCase();
+        }
+
         // Validar email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
