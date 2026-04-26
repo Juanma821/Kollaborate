@@ -30,8 +30,10 @@ const getMatches = async (userId) => {
 
         return result.rows.map(row => ({
             id: row.ID,
-            name: row.ALIAS || `${row.NOMBRE} ${row.APELLIDO}`,
-            skill: row.HABILIDAD
+            nombre: row.NOMBRE,
+            apellido: row.APELLIDO,
+            alias: row.ALIAS,
+            habilidad: row.HABILIDAD
         }));
 
     } finally {
