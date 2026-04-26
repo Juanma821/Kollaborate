@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 
 import { Colors } from '../../../assets/images/constants/Colors';
 import { globalStyles } from '../../../assets/images/constants/globalStyles';
@@ -10,71 +10,137 @@ import Checkbox from 'expo-checkbox'; //install
 import { Picker } from '@react-native-picker/picker'; //Install
 
 export default function EditProfile() {
-const insets = useSafeAreaInsets();
-  const [isSelected, setSelection] = useState(false);
+  const insets = useSafeAreaInsets();
+  const [loading, setLoading] = useState(false);
+  const [instituciones, setInstituciones] = useState<any[]>([]);
 
   // Estados para el formulario
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [alias, setAlias] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [institucionId, setInstitucionId] = useState('');
 
   // Estado para el DatePicker
-  const [fecha, setFecha] = useState(new Date());
+  const [fechaNac, setFechaNac] = useState(new Date());
   const [mostrarPicker, setMostrarPicker] = useState(false);
   const [textoFecha, setTextoFecha] = useState('Seleccionar fecha');
 
+  // Estados para Preferencias (Checkboxes independientes)
+  const [usarAliasVisualizacion, setUsarAliasVisualizacion] = useState(false);
+  const [publicarAfiliacion, setPublicarAfiliacion] = useState(false);
+
+  // Carga Datos
+  useEffect(() => {
+    const cargarInfo = async () => {
+      setLoading(true);
+      try {
+        // Instituciones para el Picker
+        const resInst = await fetch('http://localhost:3000/api/institutions');
+        const dataInst = await resInst.json();
+        setInstituciones(dataInst);
+
+        // Cargar datos del usuario (ID 1 como ejemplo)
+        const resUser = await fetch('http://localhost:3000/api/users');
+        const u = await resUser.json();
+
+        setNombre(u.nombre || '');
+        setApellido(u.apellido || '');
+        setAlias(u.alias || '');
+        setEmail(u.email || '');
+        setInstitucionId(u.institucion_id?.toString() || '');
+
+        if (u.fecha_nacimiento) {
+          const dateObj = new Date(u.fecha_nacimiento);
+          setFechaNac(dateObj);
+          setTextoFecha(dateObj.toLocaleDateString());
+        }
+
+        // Cargar preferencias (asumiendo que vienen como 0/1 de la DB)
+        setUsarAliasVisualizacion(u.pref_use_alias === 1);
+        setPublicarAfiliacion(u.pref_public_inst === 1);
+
+      } catch (error) {
+        Alert.alert("Error", "No se pudo conectar con el servidor para cargar los datos.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarInfo();
+  }, []);
+
   // Función para manejar el cambio de fecha
   const onChangeFecha = (event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || fecha;
     setMostrarPicker(Platform.OS === 'ios');
-    setFecha(currentDate);
-
-    const dia = currentDate.getDate().toString().padStart(2, '0');
-    const mes = (currentDate.getMonth() + 1).toString().padStart(2, '0');
-    const anio = currentDate.getFullYear();
-    setTextoFecha(`${dia} / ${mes} / ${anio}`);
+    if (selectedDate) {
+      setFechaNac(selectedDate);
+      setTextoFecha(selectedDate.toLocaleDateString());
+    }
   };
 
-  // Estado para la Institución
-  const [institucion, setInstitucion] = useState(''); 
+  // Guardar Cambios
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:3000/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre,
+          apellido,
+          alias,
+          institucion_id: institucionId ? parseInt(institucionId) : null,
+          fecha_nacimiento: fechaNac.toISOString().split('T')[0],
+          pref_use_alias: usarAliasVisualizacion ? 1 : 0,
+          pref_public_inst: publicarAfiliacion ? 1 : 0
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert("Éxito", "Perfil actualizado correctamente");
+      } else {
+        const err = await response.json();
+        Alert.alert("Error", err.error || "No se pudo actualizar el perfil");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Fallo de red al intentar guardar");
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   return (
-<KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1, backgroundColor: '#fff' }}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={[globalStyles.scrollContainer, { paddingTop: insets.top + 20 }]}
       >
 
-        {/* GRUPO DE INPUTS */}
+        {/* Formulario*/}
         <View style={styles.form}>
-          
+
           <Text style={styles.label}>Nombre</Text>
-          <TextInput style={[globalStyles.input, {padding: 15,fontSize: 16,}]} value={nombre} onChangeText={setNombre} placeholder="Tu nombre" />
+          <TextInput style={[globalStyles.input, { padding: 15, fontSize: 16, }]} value={nombre} onChangeText={setNombre} placeholder="Tu nombre" />
 
           <Text style={styles.label}>Apellido</Text>
-          <TextInput style={[globalStyles.input, {padding: 15,fontSize: 16,}]} value={apellido} onChangeText={setApellido} placeholder="Tu apellido" />
+          <TextInput style={[globalStyles.input, { padding: 15, fontSize: 16, }]} value={apellido} onChangeText={setApellido} placeholder="Tu apellido" />
 
           <Text style={styles.label}>Alias</Text>
-          <TextInput style={[globalStyles.input, {padding: 15,fontSize: 16,}]} value={alias} onChangeText={setAlias} placeholder="@ejemplo" />
+          <TextInput style={[globalStyles.input, { padding: 15, fontSize: 16, }]} value={alias} onChangeText={setAlias} placeholder="@ejemplo" />
 
           <Text style={styles.label}>Cumpleaños</Text>
-          <TouchableOpacity 
-            style={styles.inputSimulado} 
-            onPress={() => setMostrarPicker(true)}
-          >
+          <TouchableOpacity style={styles.inputSimulado} onPress={() => setMostrarPicker(true)}>
             <Text style={globalStyles.inputText}>{textoFecha}</Text>
           </TouchableOpacity>
 
-          {/* mostrarPicker = true */}
+          {/* Picker*/}
           {mostrarPicker && (
             <DateTimePicker
-              value={fecha}
+              value={fechaNac}
               mode="date"
               display={Platform.OS === 'ios' ? 'inline' : 'default'}
               onChange={onChangeFecha}
@@ -86,59 +152,58 @@ const insets = useSafeAreaInsets();
           <Text style={styles.label}>Institución</Text>
           <View style={styles.pickerContainer}>
             <Picker
-              selectedValue={institucion}
-              onValueChange={(itemValue) => setInstitucion(itemValue)}
+              selectedValue={institucionId}
+              onValueChange={(itemValue) => setInstitucionId(itemValue)}
               dropdownIconColor="#ff743dff"
             >
               <Picker.Item label="Selecciona una institución" value="" />
-              <Picker.Item label="Duoc UC" value="duoc" />
-              <Picker.Item label="Uni. de Chile" value="uchile" />
-              <Picker.Item label="Uni. Católica" value="puc" />
-              <Picker.Item label="Inacap" value="inacap" />
-              <Picker.Item label="Otra" value="otra" />
+              {instituciones.map((inst) => (
+                <Picker.Item key={inst.ID} label={inst.NOMBRE} value={inst.ID.toString()} />
+              ))}
             </Picker>
           </View>
 
           <Text style={styles.label}>Correo Electrónico</Text>
           <TextInput 
-            style={[globalStyles.input, {padding: 15,fontSize: 16,}]} 
+            style={[globalStyles.input, {padding: 15, fontSize: 16}]} 
             value={email} 
-            onChangeText={setEmail} 
-            keyboardType="email-address" 
-            autoCapitalize="none"
-            placeholder="correo@institucion.cl"
-          />
-
-          <Text style={styles.label}>Contraseña</Text>
-          <TextInput style={[globalStyles.input, {padding: 15,fontSize: 16,}]} value={password} onChangeText={setPassword} placeholder="********" />
-
-          <Text style={styles.label}>Confirmar Contraseña</Text>
-          <TextInput style={[globalStyles.input, {padding: 15,fontSize: 16,}]} value={confirmPassword} onChangeText={setConfirmPassword} placeholder="********" />
-
+            editable={false} 
+          />          
         </View>
 
         {/* PREFERENCIAS */}
         <View style={styles.checkboxContainer}>
           <Checkbox
-            value={isSelected}
-            onValueChange={setSelection}
+            value={usarAliasVisualizacion}
+            onValueChange={setUsarAliasVisualizacion}
             style={styles.checkbox}
+            color={usarAliasVisualizacion ? '#ff743dff' : undefined}
           />
           <Text style={styles.label}>Usar alias como nombre de visualización</Text>
         </View>
 
         <View style={styles.checkboxContainer}>
           <Checkbox
-            value={isSelected}
-            onValueChange={setSelection}
+            value={publicarAfiliacion}
+            onValueChange={setPublicarAfiliacion}
             style={styles.checkbox}
+            color={publicarAfiliacion ? '#ff743dff' : undefined}
           />
           <Text style={styles.label}>Hacer pública la afiliación académica</Text>
         </View>
+      
 
         {/* BOTÓN */}
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+        <TouchableOpacity 
+          style={[styles.saveButton, loading && { opacity: 0.7 }]} 
+          onPress={handleSave}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+          )}
         </TouchableOpacity>
 
       </ScrollView>
@@ -148,7 +213,7 @@ const insets = useSafeAreaInsets();
 
 // Estilos Propios
 const styles = StyleSheet.create({
-//Formulario
+  //Formulario
   form: {
     gap: 15,
     marginBottom: 25,
@@ -157,7 +222,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.textMuted,
-    marginBottom: -10, 
+    marginBottom: -10,
   },
   inputSimulado: {
     backgroundColor: Colors.input,
@@ -167,7 +232,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.borderDark,
     justifyContent: 'center',
   },
-// Estilo Botón Guardar Cambios
+  // Estilo Botón Guardar Cambios
   saveButton: {
     backgroundColor: Colors.colorCard,
     padding: 18,
@@ -180,18 +245,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-// Estilo Preferencias (Checkbox)
-  checkboxContainer: { 
+  // Estilo Preferencias (Checkbox)
+  checkboxContainer: {
     flexDirection: 'row',
     marginBottom: 20,
     alignItems: 'center',
     gap: 15
   },
-  checkbox: { 
+  checkbox: {
     alignSelf: 'center'
   },
 
-// Estilo Picker
+  // Estilo Picker
   pickerContainer: {
     backgroundColor: Colors.input,
     borderRadius: 10,
