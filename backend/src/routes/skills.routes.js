@@ -8,19 +8,28 @@ const {
     updateSkill,
     deleteSkill,
     addSkillOffer,
-    addSkillWant
+    addSkillWant,
+    searchSkills,
+    getUserSkills,  
+    deleteUserSkill  
 } = require('../controllers/skills.controller');
 
-
+router.get('/search', searchSkills);
 router.get('/', getSkills);
+
+// Cargar tags
+router.get('/user', verifyToken, getUserSkills); 
+
+// Añadir habilidades (Pagina habilidades)
+router.post('/:id/offer', verifyToken, addSkillOffer);
+router.post('/:id/want', verifyToken, addSkillWant);
+
+// Borrar habilidad (Tag)
+router.delete('/:id/:type', verifyToken, deleteUserSkill); 
+
 // CRUD Protegido
 router.post('/', verifyToken, createSkill);
 router.put('/:id', verifyToken, updateSkill);
 router.delete('/:id', verifyToken, deleteSkill);
-
-// Relación usuario
-router.post('/:id/offer', verifyToken, addSkillOffer);
-router.post('/:id/want', verifyToken, addSkillWant);
-
 
 module.exports = router;
