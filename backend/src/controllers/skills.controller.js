@@ -81,14 +81,19 @@ const deleteSkill = async (req, res) => {
 };
 
 
-// =========================
+
 // ADD SKILL (OFRECE)
 // =========================
 const addSkillOffer = async (req, res) => {
     try {
+        const habilidadId = Number(req.params.id);
+        if (isNaN(habilidadId)) {
+            return res.status(400).json({ error: 'ID de habilidad inválido' });
+        }
+
         const result = await skillsService.addSkillToUser({
             usuario_id: req.user.id,
-            habilidad_id: Number(req.params.id),
+            habilidad_id: habilidadId,
             tipo: 'Ofrece'
         });
 

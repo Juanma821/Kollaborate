@@ -47,6 +47,10 @@ const register = async (req, res) => {
     try {
         const { email, password, nombre, apellido, alias } = req.body;
 
+        if (!email || !password || !nombre || !apellido || !alias) {
+            return res.status(400).json({ error: 'Faltan campos obligatorios' });
+        }
+
         const user = await authService.register(
             email,
             password,

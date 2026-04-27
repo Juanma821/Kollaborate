@@ -161,6 +161,21 @@ const rechazarSolicitud = async (id, userId) => {
     try {
         connection = await db.getConnection();
 
+        const result = await connection.execute(
+            `SELECT estado_id FROM solicitudes WHERE id = :id AND receptor_id = :userId`,
+            { id, userId }
+        );
+
+        if (result.rows.length === 0) {
+            throw new Error('Solicitud no encontrada o no autorizada');
+        }
+
+        const solicitud = result.rows[0];
+
+        if (solicitud.estado_id !== 1) {
+            throw new Error('La solicitud ya fue procesada');
+        }
+
         await connection.execute(
             `UPDATE solicitudes SET estado_id = 3 WHERE id = :id AND receptor_id = :user`,
             {

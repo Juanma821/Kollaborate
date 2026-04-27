@@ -36,7 +36,7 @@ const createSkill = async (data) => {
             throw new Error('Nombre requerido');
         }
 
-        const nombre = data.nombre.trim();
+        const nombre = data.nombre.trim().toLowerCase();
 
         connection = await db.getConnection();
 
@@ -85,7 +85,7 @@ const updateSkill = async (id, data) => {
             throw new Error('Nombre requerido');
         }
 
-        const nombre = data.nombre.trim();
+        const nombre = data.nombre.trim().toLowerCase();
 
         connection = await db.getConnection();
 
@@ -184,9 +184,9 @@ const addSkillToUser = async (data) => {
             throw new Error('IDs inválidos');
         }
 
-        const tipo = data.tipo.trim();
+        const tipo = data.tipo.trim().toUpperCase();
 
-        if (!['Ofrece', 'Busca'].includes(tipo)) {
+        if (!['OFRECE', 'BUSCA'].includes(tipo)) {
             throw new Error('Tipo inválido');
         }
 
@@ -202,7 +202,7 @@ const addSkillToUser = async (data) => {
         }
 
         const skill = await connection.execute(
-            `SELECT id FROM habilidades WHERE id = :id`,
+            `SELECT id, LOWER(nombre) as nombre FROM habilidades WHERE id = :id`,
             { id: habilidadId }
         );
 
