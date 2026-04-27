@@ -8,11 +8,40 @@ import { globalStyles } from '../assets/images/constants/globalStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; // install
 import IconApp from '../assets/images/IconApp.png'; //Import
 
+import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
+
 
 export default function Login() {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    try {
+      const res = await fetch("http://192.168.1.12:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        alert("Credenciales incorrectas");
+        return;
+      }
+
+      const data = await res.json();
+
+      await SecureStore.setItemAsync("token", data.token);
+
+      router.replace("/(tabs)/home");
+
+      } catch (error) {
+        alert("Error de conexión");
+        console.log(error);
+      }
+    };
+  
 
   return (
     <KeyboardAvoidingView
@@ -43,11 +72,10 @@ export default function Login() {
             </TouchableOpacity>
           </View>
 
-          <Link href="/(tabs)/home" asChild>
-            <TouchableOpacity style={globalStyles.buttonAuth}>
+            <TouchableOpacity style={globalStyles.buttonAuth} onPress={handleLogin}>
               <Text style={globalStyles.buttonTextAuth}>Iniciar Sesión</Text>
             </TouchableOpacity>
-          </Link>
+
         </View>
       </View>
     </KeyboardAvoidingView>
