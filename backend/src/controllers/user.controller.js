@@ -18,6 +18,12 @@ const getUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
     try {
+        const { nombre, apellido, alias } = req.body;
+
+        if (!nombre || !apellido || !alias) {
+            return res.status(400).json({ error: 'Nombre, apellido y alias son obligatorios' });
+        }
+
         const user = await userService.updateUser(
             Number(req.params.id),
             req.body

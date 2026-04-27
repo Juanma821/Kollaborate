@@ -1,6 +1,5 @@
 const db = require('../db');
 
-
 // =========================
 // GET SKILLS
 // =========================
@@ -11,16 +10,14 @@ const getSkills = async () => {
         connection = await db.getConnection();
 
         const result = await connection.execute(
-            `SELECT id, nombre, categoria FROM habilidades`,
-            [],
-            { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
+            `SELECT id, nombre, categoria FROM habilidades`
         );
 
-        return result.rows;
-
-    } catch (error) {
-        console.error(error);
-        throw error;
+        return result.rows.map(row => ({
+            id: row.ID,
+            nombre: row.NOMBRE,
+            categoria: row.CATEGORIA || null
+        }));
 
     } finally {
         if (connection) await connection.close();
@@ -39,7 +36,7 @@ const createSkill = async (data) => {
             throw new Error('Nombre requerido');
         }
 
-        const nombre = data.nombre.trim();
+        const nombre = data.nombre.trim().toLowerCase();
 
         connection = await db.getConnection();
 
@@ -71,14 +68,6 @@ const createSkill = async (data) => {
             categoria: data.categoria || null
         };
 
-    } catch (error) {
-        if (connection) {
-            try {
-                await connection.rollback();
-            } catch (e) {}
-        }
-        throw error;
-
     } finally {
         if (connection) await connection.close();
     }
@@ -96,7 +85,7 @@ const updateSkill = async (id, data) => {
             throw new Error('Nombre requerido');
         }
 
-        const nombre = data.nombre.trim();
+        const nombre = data.nombre.trim().toLowerCase();
 
         connection = await db.getConnection();
 
@@ -135,14 +124,6 @@ const updateSkill = async (id, data) => {
             categoria: data.categoria || null
         };
 
-    } catch (error) {
-        if (connection) {
-            try {
-                await connection.rollback();
-            } catch (e) {}
-        }
-        throw error;
-
     } finally {
         if (connection) await connection.close();
     }
@@ -179,14 +160,6 @@ const deleteSkill = async (id) => {
             message: 'Skill eliminada correctamente'
         };
 
-    } catch (error) {
-        if (connection) {
-            try {
-                await connection.rollback();
-            } catch (e) {}
-        }
-        throw error;
-
     } finally {
         if (connection) await connection.close();
     }
@@ -211,13 +184,11 @@ const addSkillToUser = async (data) => {
             throw new Error('IDs inválidos');
         }
 
-        const tipoRaw = data.tipo.trim().toLowerCase();
+        const tipo = data.tipo.trim().toUpperCase();
 
-        if (!['ofrece', 'busca'].includes(tipoRaw)) {
+        if (!['OFRECE', 'BUSCA'].includes(tipo)) {
             throw new Error('Tipo inválido');
         }
-
-        const tipo = tipoRaw === 'ofrece' ? 'Ofrece' : 'Busca';
 
         connection = await db.getConnection();
 
@@ -231,7 +202,7 @@ const addSkillToUser = async (data) => {
         }
 
         const skill = await connection.execute(
-            `SELECT id FROM habilidades WHERE id = :id`,
+            `SELECT id, LOWER(nombre) as nombre FROM habilidades WHERE id = :id`,
             { id: habilidadId }
         );
 
@@ -244,11 +215,7 @@ const addSkillToUser = async (data) => {
              WHERE usuario_id = :usuario_id
              AND habilidad_id = :habilidad_id
              AND tipo = :tipo`,
-            {
-                usuario_id: usuarioId,
-                habilidad_id: habilidadId,
-                tipo
-            }
+            { usuario_id: usuarioId, habilidad_id: habilidadId, tipo }
         );
 
         if (existing.rows.length > 0) {
@@ -258,11 +225,7 @@ const addSkillToUser = async (data) => {
         await connection.execute(
             `INSERT INTO usuario_habilidades (usuario_id, habilidad_id, tipo)
              VALUES (:usuario_id, :habilidad_id, :tipo)`,
-            {
-                usuario_id: usuarioId,
-                habilidad_id: habilidadId,
-                tipo
-            }
+            { usuario_id: usuarioId, habilidad_id: habilidadId, tipo }
         );
 
         await connection.commit();
@@ -271,19 +234,10 @@ const addSkillToUser = async (data) => {
             message: 'Habilidad asignada correctamente'
         };
 
-    } catch (error) {
-        if (connection) {
-            try {
-                await connection.rollback();
-            } catch (e) {}
-        }
-        throw error;
-
     } finally {
         if (connection) await connection.close();
     }
 };
-
 
 module.exports = {
     getSkills,

@@ -17,8 +17,13 @@ const createSolicitud = async (req, res) => {
 
 // obtener
 const getSolicitudes = async (req, res) => {
-    const result = await solicitudesService.getSolicitudes(req.user.id);
-    res.json(result);
+    try {
+        const result = await solicitudesService.getSolicitudes(req.user.id);
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error obteniendo solicitudes' });
+    }
 };
 
 // aceptar
@@ -37,12 +42,13 @@ const aceptarSolicitud = async (req, res) => {
 
 // rechazar
 const rechazarSolicitud = async (req, res) => {
-    const result = await solicitudesService.rechazarSolicitud(
-        Number(req.params.id),
-        req.user.id
-    );
-
-    res.json(result);
+    try{
+        const result = await solicitudesService.rechazarSolicitud(req.user.id, req.params.id);
+        res.json(result);
+    } catch (error) {
+        console.error('Error en rechazar Solicitud:', error);
+        res.status(500).json({ error: `Error rechazando solicitud: ${error.message}` });
+    }
 };
 
 module.exports = {
