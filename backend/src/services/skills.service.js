@@ -244,10 +244,95 @@ const addSkillToUser = async (data) => {
     }
 };
 
+// =========================
+// SEARCH SKILLS (Autocompletar busqueda pagina habilidades)
+// =========================
+const searchSkills = async (termino) => {
+    let connection;
+    try {
+        connection = await db.getConnection();
+        // Buscar coinciencias
+        const result = await connection.execute(
+            `SELECT id, nombre FROM habilidades 
+             WHERE LOWER(nombre) LIKE LOWER(:query)
+             FETCH FIRST 5 ROWS ONLY`,
+            { query: `%${termino}%` }
+        );
+
+        return result.rows.map(row => ({
+            id: row.ID,
+            nombre: row.NOMBRE
+        }));
+    } finally {
+        if (connection) await connection.close();
+    }
+};
+
+// =========================
+// REMOVE SKILL (Eliminar tag pagina habilidades)
+// =========================
+const removeSkillFromUser = async (usuarioId, habilidadId, tipoInput) => {
+    let connection;
+    try {
+        connection = await db.getConnection();
+        // Delete
+        const result = await connection.execute(
+            `DELETE FROM usuario_habilidades 
+             WHERE usuario_id = :usuario_id 
+             AND habilidad_id = :habilidad_id 
+             AND tipo = :tipo`,
+            {
+                usuario_id: usuarioId,
+                habilidad_id: habilidadId,
+                tipo: tipoInput.trim() // Ofrece o Busca
+            }
+        );
+
+        if (result.rowsAffected === 0) {
+            throw new Error('La relación no existe');
+        }
+
+        await connection.commit();
+        return { message: 'Habilidad removida' };
+    } finally {
+        if (connection) await connection.close();
+    }
+};
+
+// =========================
+// GET USER SKILLS (Cargar tag pagina habilidades)
+// =========================
+const getUserSkills = async (usuarioId) => {
+    let connection;
+    try {
+        connection = await db.getConnection();
+        //Cargar Tags
+        const result = await connection.execute(
+            `SELECT h.id, h.nombre, uh.tipo 
+             FROM habilidades h
+             JOIN usuario_habilidades uh ON h.id = uh.habilidad_id
+             WHERE uh.usuario_id = :usuario_id`,
+            { usuario_id: usuarioId }
+        );
+
+        return result.rows.map(row => ({
+            id: row.ID,
+            nombre: row.NOMBRE,
+            tipo: row.TIPO
+        }));
+    } finally {
+        if (connection) await connection.close();
+    }
+};
+
 module.exports = {
     getSkills,
     createSkill,
     updateSkill,
     deleteSkill,
-    addSkillToUser
+    addSkillToUser,
+    removeSkillFromUser,
+    getUserSkills,
+    searchSkills
+
 };

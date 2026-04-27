@@ -125,6 +125,64 @@ const addSkillWant = async (req, res) => {
     }
 };
 
+// =========================
+// SEARCH SKILLS (Autocompletado)
+// =========================
+const searchSkills = async (req, res) => {
+    try {
+        const query = req.query.q;
+        console.log("🔍 Buscando en BD:", query);
+
+        if (!query) return res.json([]);
+
+        const skills = await skillsService.searchSkills(query);
+        res.json(skills);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al buscar habilidades' });
+    }
+};
+
+// =========================
+// DELETE USER SKILL (La "X" del tag)
+// =========================
+const deleteUserSkill = async (req, res) => {
+    try {
+        const habilidadId = Number(req.params.id);
+        const tipoUrl = req.params.type; 
+        const usuarioId = req.user.id;
+
+        let tipoParaBD;
+        if (tipoUrl === 'offer' || tipoUrl === 'ofrezco' || tipoUrl === 'Ofrece') {
+            tipoParaBD = 'Ofrece';
+        } else {
+            tipoParaBD = 'Busca';
+        }
+
+        const result = await skillsService.removeSkillFromUser(usuarioId, habilidadId, tipoParaBD);
+        res.json(result);
+
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+
+// =========================
+// GET USER SKILLS (Cargar tag)
+// =========================
+const getUserSkills = async (req, res) => {
+    try {
+        const usuarioId = req.user.id;
+        const skills = await skillsService.getUserSkills(usuarioId);
+        res.json(skills);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al obtener habilidades del usuario' });
+    }
+};
+
 
 module.exports = {
     getSkills,
@@ -132,5 +190,8 @@ module.exports = {
     updateSkill,
     deleteSkill,
     addSkillOffer,
-    addSkillWant
+    addSkillWant,
+    searchSkills,
+    getUserSkills,
+    deleteUserSkill
 };
