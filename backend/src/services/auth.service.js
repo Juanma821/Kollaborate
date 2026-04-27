@@ -1,8 +1,8 @@
 const db = require('../db');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 
-// =========================
 // LOGIN
 // =========================
 const login = async (email, password) => {
@@ -10,7 +10,7 @@ const login = async (email, password) => {
 
     try {
         if (!email || !password) {
-            throw new Error('Email y contraseña requeridos');
+            throw new Error('Email y contrasena requeridos');
         }
 
         email = email.toLowerCase().trim();
@@ -72,12 +72,12 @@ const register = async (email, password, nombre, apellido, alias) => {
         // Validar email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            throw new Error('Email inválido');
+            throw new Error('Email invalido');
         }
 
         // Validar password
         if (password.length < 6) {
-            throw new Error('La contraseña debe tener al menos 6 caracteres');
+            throw new Error('La contrasena debe tener al menos 6 caracteres');
         }
 
         connection = await db.getConnection();
@@ -100,7 +100,7 @@ const register = async (email, password, nombre, apellido, alias) => {
             );
 
             if (existingAlias.rows.length > 0) {
-                throw new Error('El alias ya está en uso');
+                throw new Error('El alias ya esta en uso');
             }
         }
 
@@ -134,7 +134,7 @@ const register = async (email, password, nombre, apellido, alias) => {
 
     } catch (error) {
         if (error.errorNum === 1) {
-            return null; // duplicado
+            return null; 
         }
 
         console.error(error);
@@ -145,4 +145,137 @@ const register = async (email, password, nombre, apellido, alias) => {
     }
 };
 
-module.exports = { login, register };
+// FORGOT PASSWORD
+// =========================
+const forgotPassword = async (email) => {
+    let connection;
+
+    try {
+        if (!email) {
+            throw new Error('Email requerido');
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+        connection = await db.getConnection();
+
+        const userResult = await connection.execute(
+            `SELECT id FROM usuarios WHERE email = :email`,
+            { email: normalizedEmail }
+        );
+
+        if (userResult.rows.length === 0) {
+            return {
+                success: true,
+                message: 'Si el correo existe, se genero un codigo de recuperacion'
+            };
+        }
+
+        const userId = userResult.rows[0].ID;
+        const codigo = crypto.randomInt(100000, 999999).toString();
+
+        await connection.execute(
+            `DELETE FROM recuperaciones WHERE usuario_id = :usuario_id`,
+            { usuario_id: userId }
+        );
+
+        await connection.execute(
+            `INSERT INTO recuperaciones (usuario_id, codigo, expiracion)
+             VALUES (
+                :usuario_id,
+                :codigo,
+                CURRENT_TIMESTAMP + NUMTODSINTERVAL(12, 'HOUR')
+             )`,
+            {
+                usuario_id: userId,
+                codigo
+            }
+        );
+
+        await connection.commit();
+
+        return {
+            success: true,
+            message: 'Codigo de recuperacion generado',
+            codigo
+        };
+
+    } finally {
+        if (connection) await connection.close();
+    }
+};
+
+
+// =========================
+// RESET PASSWORD
+// =========================
+const resetPassword = async (email, codigo, newPassword) => {
+    let connection;
+
+    try {
+        if (!email || !codigo || !newPassword) {
+            throw new Error('Email, codigo y nueva contrasena son obligatorios');
+        }
+
+        if (newPassword.length < 6) {
+            throw new Error('La contrasena debe tener al menos 6 caracteres');
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+        connection = await db.getConnection();
+
+        const result = await connection.execute(
+            `SELECT u.id, r.id AS recuperacion_id, r.codigo, r.expiracion
+             FROM usuarios u
+             JOIN recuperaciones r ON r.usuario_id = u.id
+             WHERE u.email = :email`,
+            { email: normalizedEmail }
+        );
+
+        if (result.rows.length === 0) {
+            throw new Error('No existe una recuperacion activa para este correo');
+        }
+
+        const recovery = result.rows[0];
+
+        if (recovery.CODIGO !== codigo.trim()) {
+            throw new Error('Codigo de recuperacion invalido');
+        }
+
+        const expirationDate = new Date(recovery.EXPIRACION);
+        if (Number.isNaN(expirationDate.getTime()) || expirationDate.getTime() < Date.now()) {
+            throw new Error('El codigo de recuperacion expiro');
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await connection.execute(
+            `UPDATE usuarios SET password_hash = :password WHERE id = :id`,
+            {
+                password: hashedPassword,
+                id: recovery.ID
+            }
+        );
+
+        await connection.execute(
+            `DELETE FROM recuperaciones WHERE id = :id`,
+            { id: recovery.RECUPERACION_ID }
+        );
+
+        await connection.commit();
+
+        return {
+            success: true,
+            message: 'Contrasena restablecida correctamente'
+        };
+
+    } finally {
+        if (connection) await connection.close();
+    }
+};
+
+module.exports = {
+    login,
+    register,
+    forgotPassword,
+    resetPassword
+};

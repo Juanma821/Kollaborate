@@ -181,12 +181,17 @@ const addSkillToUser = async (data) => {
         const habilidadId = Number(data.habilidad_id);
 
         if (isNaN(usuarioId) || isNaN(habilidadId)) {
-            throw new Error('IDs inválidos');
+            throw new Error('IDs invalidos');
         }
 
-        const tipo = data.tipo.trim().toUpperCase();
+        const tipoNormalizado = data.tipo.trim().toLowerCase();
+        const tipo = tipoNormalizado === 'ofrece'
+            ? 'Ofrece'
+            : tipoNormalizado === 'busca'
+                ? 'Busca'
+                : null;
 
-        if (!['OFRECE', 'BUSCA'].includes(tipo)) {
+        if (!tipo) {
             throw new Error('Tipo inválido');
         }
 
@@ -202,7 +207,7 @@ const addSkillToUser = async (data) => {
         }
 
         const skill = await connection.execute(
-            `SELECT id, LOWER(nombre) as nombre FROM habilidades WHERE id = :id`,
+            `SELECT id FROM habilidades WHERE id = :id`,
             { id: habilidadId }
         );
 
@@ -219,7 +224,7 @@ const addSkillToUser = async (data) => {
         );
 
         if (existing.rows.length > 0) {
-            throw new Error('La skill ya está asignada');
+            throw new Error('La skill ya esta asignada');
         }
 
         await connection.execute(

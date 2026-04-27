@@ -12,7 +12,7 @@ const login = async (req, res) => {
         const user = await authService.login(email, password);
 
         if (!user) {
-            return res.status(401).json({ error: 'Credenciales inválidas' });
+            return res.status(401).json({ error: 'Credenciales invalidas' });
         }
 
         const token = jwt.sign(
@@ -40,7 +40,6 @@ const login = async (req, res) => {
 };
 
 
-// =========================
 // REGISTER
 // =========================
 const register = async (req, res) => {
@@ -78,4 +77,58 @@ const register = async (req, res) => {
     }
 };
 
-module.exports = { login, register };
+// FORGOT PASSWORD
+// =========================
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: 'Email requerido' });
+        }
+
+        const result = await authService.forgotPassword(email);
+        return res.json(result);
+
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ error: error.message });
+    }
+};
+
+
+// RESET PASSWORD
+// =========================
+const resetPassword = async (req, res) => {
+    try {
+        const { email, codigo, newPassword } = req.body;
+
+        if (!email || !codigo || !newPassword) {
+            return res.status(400).json({ error: 'Faltan campos obligatorios' });
+        }
+
+        const result = await authService.resetPassword(email, codigo, newPassword);
+        return res.json(result);
+
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ error: error.message });
+    }
+};
+
+// LOGOUT
+// =========================
+const logout = async (req, res) => {
+    return res.json({
+        success: true,
+        message: 'Logout exitoso. El cliente debe eliminar el token local.'
+    });
+};
+
+module.exports = {
+    login,
+    register,
+    forgotPassword,
+    resetPassword,
+    logout
+};

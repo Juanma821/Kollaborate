@@ -172,7 +172,7 @@ const rechazarSolicitud = async (id, userId) => {
 
         const solicitud = result.rows[0];
 
-        if (solicitud.estado_id !== 1) {
+        if (solicitud.ESTADO_ID !== 1) {
             throw new Error('La solicitud ya fue procesada');
         }
 
