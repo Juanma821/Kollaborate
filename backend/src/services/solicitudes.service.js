@@ -133,7 +133,7 @@ const aceptarSolicitud = async (id, userId) => {
             ) VALUES (
                 :solicitud,
                 CURRENT_TIMESTAMP,
-                1
+                4
             )`,
             {
                 solicitud: id

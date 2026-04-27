@@ -9,7 +9,10 @@ const getAllInstitutions = async () => {
             [],
             { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
-        return result.rows; 
+        return result.rows.map(row => ({
+            id: row.ID,
+            nombre: row.NOMBRE
+        })); 
     } finally {
         if (connection) await connection.close();
     }
