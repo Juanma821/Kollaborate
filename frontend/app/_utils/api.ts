@@ -220,4 +220,35 @@ export const createSolicitudRequest = (
     body: payload,
   });
 
+  export type SolicitudItem = {
+  id: number;
+  usuario: string;
+  habilidad: string;
+  estado_id: number;
+  fecha: string;
+};
+
+export type SolicitudesResponse = {
+  recibidas: SolicitudItem[];
+  enviadas: SolicitudItem[];
+};
+
+export const getSolicitudesRequest = (token: string) =>
+  request<SolicitudesResponse>('/solicitudes', {
+    method: 'GET',
+    token,
+  });
+
+export const aceptarSolicitudRequest = (token: string, solicitudId: number) =>
+  request<{ message: string }>(`/solicitudes/${solicitudId}/aceptar`, {
+    method: 'PUT',
+    token,
+  });
+
+export const rechazarSolicitudRequest = (token: string, solicitudId: number) =>
+  request<{ message: string }>(`/solicitudes/${solicitudId}/rechazar`, {
+    method: 'PUT',
+    token,
+  });
+
 

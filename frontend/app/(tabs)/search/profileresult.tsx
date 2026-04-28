@@ -1,33 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import {Image,StyleSheet,Text,TextInput,TouchableOpacity,View,Platform,ActivityIndicator,Alert,} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Platform,
+  Alert,
+} from 'react-native';
 
 import { Colors } from '../../../assets/images/constants/Colors';
 import { globalStyles } from '../../../assets/images/constants/globalStyles';
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; // install
-import Ionicons from '@expo/vector-icons/Ionicons'; //install
-import DateTimePicker from '@react-native-community/datetimepicker'; //install
-import { Picker } from '@react-native-picker/picker'; //Install
-import ProfileIcon from '../../../assets/images/profileicon.png'; //Import
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
+import ProfileIcon from '../../../assets/images/profileicon.png';
+
+import {
+  createSolicitudRequest,
+  getMatchProfileRequest,
+  type MatchProfile,
+} from '../../_utils/api';
+import { getToken } from '../../_utils/authStorage';
 
 export default function ProfileResult() {
-const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
+  const { id } = useLocalSearchParams();
 
-  const handleAccept = () => {
-      alert("Simulación: Solicitud aceptada");
-  };
-  const handleReject = () => {
-      alert("Simulación: Solicitud rechazada");
-  };
-  const [habilidad, setHabilidad] = useState("React Native");
-  const [modalidad, setModalidad] = useState("online");
+  const [profile, setProfile] = useState<MatchProfile | null>(null);
+  const [habilidadId, setHabilidadId] = useState('');
+  const [modalidad, setModalidad] = useState('online');
   const [fecha, setFecha] = useState(new Date());
   const [mostrarPicker, setMostrarPicker] = useState(false);
-  const [textoFecha, setTextoFecha] = useState("");
+  const [textoFecha, setTextoFecha] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Función para manejar el cambio de fecha
-  const onChangeFecha = (event: any, selectedDate?: Date) => {
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+
+        const token = await getToken();
+        if (!token || !id) return;
+
+        const data = await getMatchProfileRequest(token, Number(id));
+        setProfile(data);
+
+        if (data.ofrezco.length > 0) {
+          setHabilidadId(String(data.ofrezco[0].id));
+        }
+      } catch (error) {
+        console.error('Error cargando perfil del match:', error);
+        Alert.alert('Error', 'No se pudo cargar el perfil');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [id]);
+
+  const onChangeFecha = (_event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || fecha;
     setMostrarPicker(Platform.OS === 'ios');
     setFecha(currentDate);
@@ -37,45 +73,66 @@ const insets = useSafeAreaInsets();
     const anio = currentDate.getFullYear();
     setTextoFecha(`${dia} / ${mes} / ${anio}`);
   };
-  
+
+  const handleSendSolicitud = async () => {
+    try {
+      const token = await getToken();
+
+      if (!token || !profile || !habilidadId) {
+        Alert.alert('Error', 'Faltan datos para enviar la solicitud');
+        return;
+      }
+
+      const result = await createSolicitudRequest(token, {
+        receptor_id: profile.id,
+        habilidad_id: Number(habilidadId),
+      });
+
+      Alert.alert('Exito', result.message || 'Solicitud enviada');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se pudo enviar la solicitud';
+      Alert.alert('Error', message);
+    }
+  };
+
+  const selectedSkill = profile?.ofrezco.find((s) => String(s.id) === habilidadId);
+
   return (
     <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
-      
-      {/* Sección Tarjeta Perfil */}
       <View style={globalStyles.cardContainer}>
-        {/* SECCIÓN IZQUIERDA: Imagen Perfil */}
         <View style={globalStyles.leftColumn}>
-          <Image source={ProfileIcon} style={globalStyles.profileImage}/>
+          <Image source={ProfileIcon} style={globalStyles.profileImage} />
         </View>
 
-        {/* SECCIÓN DERECHA: Información */}
         <View style={globalStyles.rightColumn}>
           <View style={globalStyles.skillsSection}>
-            <Text style={globalStyles.userName}>@UserAlias</Text>
-            <Text style={globalStyles.institution}>Duoc UC</Text>            
+            <Text style={globalStyles.userName}>@{profile?.alias || 'Usuario'}</Text>
+            <Text style={globalStyles.institution}>{profile?.institucion_nombre || 'Sin institucion'}</Text>
             <View style={globalStyles.rankContainer}>
               <Ionicons name="ribbon-sharp" size={24} color="#FFD700" />
-              <Text style={globalStyles.rankText}>Oro</Text>
+              <Text style={globalStyles.rankText}>{profile?.rol || 'estudiante'}</Text>
             </View>
           </View>
         </View>
       </View>
 
-      {/* Línea divisoria horizontal */}
       <View style={globalStyles.innerDivider} />
 
-    {/* Sección Tarjeta Información Solicitud (EDICIÓN) */}
-      <View style={globalStyles.requestContainer}>        
-        {/* SECCIÓN IZQUIERDA: Campos para elegir */}
-        <View style={globalStyles.leftRequestColumn}>          
+      <View style={globalStyles.requestContainer}>
+        <View style={globalStyles.leftRequestColumn}>
           <View style={globalStyles.infoGroup}>
             <Text style={globalStyles.label}>Habilidad que buscas</Text>
-            <TextInput 
-              style={styles.inputEdit} 
-              value={habilidad} 
-              onChangeText={setHabilidad} 
-              placeholder="Ej: React Native" 
-            />
+            <View style={styles.pickerBorder}>
+              <Picker
+                selectedValue={habilidadId}
+                onValueChange={(itemValue) => setHabilidadId(String(itemValue))}
+                style={styles.pickerSmall}
+              >
+                {profile?.ofrezco.map((skill) => (
+                  <Picker.Item key={skill.id} label={skill.nombre} value={String(skill.id)} />
+                ))}
+              </Picker>
+            </View>
           </View>
 
           <View style={globalStyles.infoGroup}>
@@ -83,24 +140,25 @@ const insets = useSafeAreaInsets();
             <View style={styles.pickerBorder}>
               <Picker
                 selectedValue={modalidad}
-                onValueChange={(itemValue) => setModalidad(itemValue)}
-                style={styles.pickerSmall}>
+                onValueChange={(itemValue) => setModalidad(String(itemValue))}
+                style={styles.pickerSmall}
+              >
                 <Picker.Item label="Online" value="online" />
+                <Picker.Item label="Presencial" value="presencial" />
               </Picker>
             </View>
           </View>
 
           <View style={globalStyles.infoGroup}>
             <Text style={globalStyles.label}>Fecha deseada</Text>
-            <TouchableOpacity 
-              style={styles.inputEdit} 
+            <TouchableOpacity
+              style={styles.inputEdit}
               onPress={() => setMostrarPicker(true)}
             >
-              <Text style={globalStyles.inputText}>{textoFecha || "Seleccionar..."}</Text>
+              <Text style={globalStyles.inputText}>{textoFecha || 'Seleccionar...'}</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Componente invisible que se activa al presionar arriba */}
           {mostrarPicker && (
             <DateTimePicker
               value={fecha}
@@ -112,31 +170,31 @@ const insets = useSafeAreaInsets();
           )}
         </View>
 
-        {/* SECCIÓN DERECHA: Costo del servicio */}
         <View style={globalStyles.rightRequestColumn}>
-          <Text style={globalStyles.tokenLabel}>Inversión</Text>
+          <Text style={globalStyles.tokenLabel}>Inversion</Text>
           <Ionicons name="ticket" size={40} color="#ff743dff" />
           <Text style={styles.tokenAmountNegative}>-50</Text>
           <Text style={globalStyles.tokenSub}>Tokens</Text>
+          <Text style={styles.skillPreview}>{selectedSkill?.nombre || 'Sin habilidad'}</Text>
         </View>
       </View>
-      
-      {/* BOTÓN */}
+
       <View style={globalStyles.buttonContainer}>
-        <TouchableOpacity 
-          style={[globalStyles.button, globalStyles.buttonAccept]} 
-          onPress={handleAccept}
+        <TouchableOpacity
+          style={[globalStyles.button, globalStyles.buttonAccept]}
+          onPress={handleSendSolicitud}
+          disabled={loading}
         >
-          <Text style={globalStyles.buttonText}>Enviar Solicitud</Text>
+          <Text style={globalStyles.buttonText}>
+            {loading ? 'Cargando...' : 'Enviar Solicitud'}
+          </Text>
         </TouchableOpacity>
-      </View>      
+      </View>
     </View>
   );
 }
 
-// Estilo Propio
 const styles = StyleSheet.create({
-  //Container Tarjeta Información Solicitud
   inputEdit: {
     backgroundColor: Colors.input,
     paddingVertical: 10,
@@ -166,5 +224,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ff4444',
   },
-
+  skillPreview: {
+    marginTop: 10,
+    fontSize: 12,
+    color: Colors.textMuted,
+    textAlign: 'center',
+  },
 });

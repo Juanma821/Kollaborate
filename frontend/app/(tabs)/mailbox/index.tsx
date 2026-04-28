@@ -1,54 +1,118 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal, Alert, ActivityIndicator } from 'react-native';
 
 import { Colors } from '../../../assets/images/constants/Colors';
 import { globalStyles } from '../../../assets/images/constants/globalStyles';
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; //Install
-import { useRouter } from 'expo-router'; //Install
-import { Ionicons } from '@expo/vector-icons'; //Install
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+
+import {
+  aceptarSolicitudRequest,
+  getSolicitudesRequest,
+  rechazarSolicitudRequest,
+  type SolicitudItem,
+} from '../../_utils/api';
+import { getToken } from '../../_utils/authStorage';
 
 export default function Mailbox() {
-  const [selectedTab, setSelectedTab] = useState('request');
+  const [selectedTab, setSelectedTab] = useState<'request' | 'reply' | 'message'>('request');
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  // Estados para el Modal de Respuesta
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedRespuesta, setSelectedRespuesta] = useState<any>(null);
+  const [selectedRespuesta, setSelectedRespuesta] = useState<SolicitudItem | null>(null);
 
-  // Datos de ejemplo
-  const solicitudes = [
-    { id: 1, usuario: 'Juan Pérez', habilidad: 'React', fecha: 'hace 5 min' },
-  ];
+  const [solicitudesRecibidas, setSolicitudesRecibidas] = useState<SolicitudItem[]>([]);
+  const [solicitudesEnviadas, setSolicitudesEnviadas] = useState<SolicitudItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const respuestas = [
-    { id: 2, usuario: 'Maria José', habilidad: 'Node.js', estado: 'Aceptado', fecha: '14:40' },
-    { id: 3, usuario: 'Carlos Ruiz', habilidad: 'Python', estado: 'Rechazado', fecha: 'Ayer' },
-  ];
+  const mensajes: any[] = [];
 
-  const mensajes = [
-    { id: 101, usuario: 'Maria José', ultimoMensaje: 'Mensaje', fecha: '12:30' },
-  ];
+  useEffect(() => {
+    loadSolicitudes();
+  }, []);
 
-  // Función abrir modal
-  const abrirResolucion = (item: any) => {
+  const loadSolicitudes = async () => {
+    try {
+      setLoading(true);
+      const token = await getToken();
+
+      if (!token) return;
+
+      const data = await getSolicitudesRequest(token);
+
+      console.log('Solicitudes recibidas:', data.recibidas);
+      console.log('Solicitudes enviadas:', data.enviadas);
+
+      setSolicitudesRecibidas(data.recibidas);
+      setSolicitudesEnviadas(data.enviadas);
+    } catch (error) {
+      console.error('Error cargando solicitudes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const abrirResolucion = (item: SolicitudItem) => {
     setSelectedRespuesta(item);
     setModalVisible(true);
   };
 
+  const handleAceptar = async (id: number) => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const result = await aceptarSolicitudRequest(token, id);
+      Alert.alert('Exito', result.message || 'Solicitud aceptada');
+      setModalVisible(false);
+      await loadSolicitudes();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se pudo aceptar la solicitud';
+      Alert.alert('Error', message);
+    }
+  };
+
+  const handleRechazar = async (id: number) => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const result = await rechazarSolicitudRequest(token, id);
+      Alert.alert('Exito', result.message || 'Solicitud rechazada');
+      setModalVisible(false);
+      await loadSolicitudes();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se pudo rechazar la solicitud';
+      Alert.alert('Error', message);
+    }
+  };
+
+  const estadoTexto = (estadoId: number) => {
+    if (estadoId === 1) return 'Pendiente';
+    if (estadoId === 2) return 'Aceptada';
+    if (estadoId === 3) return 'Rechazada';
+    return 'Desconocido';
+  };
+
   return (
     <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
-      
-      {/* Selector de 3 Botones */}
       <View style={styles.selectorContainer}>
         {['request', 'reply', 'message'].map((tab) => (
           <TouchableOpacity
             key={tab}
             style={[globalStyles.selectorButton, selectedTab === tab && globalStyles.selectorButtonActive]}
-            onPress={() => setSelectedTab(tab)}
+            onPress={() => setSelectedTab(tab as 'request' | 'reply' | 'message')}
           >
-            <Text style={[globalStyles.selectorText, {fontSize: 12}, selectedTab === tab && globalStyles.selectorTextActive]}>
+            <Text
+              style={[
+                globalStyles.selectorText,
+                { fontSize: 12 },
+                selectedTab === tab && globalStyles.selectorTextActive
+              ]}
+            >
               {tab === 'request' ? 'Solicitudes' : tab === 'reply' ? 'Respuestas' : 'Chats'}
             </Text>
           </TouchableOpacity>
@@ -57,90 +121,143 @@ export default function Mailbox() {
 
       <View style={globalStyles.contentSectionB}>
         <Text style={globalStyles.sectionTitle}>
-          {selectedTab === 'request' ? 'Nuevas Solicitudes' : selectedTab === 'reply' ? 'Resolución de Solicitudes' : 'Conversaciones'}
+          {selectedTab === 'request'
+            ? 'Nuevas Solicitudes'
+            : selectedTab === 'reply'
+              ? 'Resolucion de Solicitudes'
+              : 'Conversaciones'}
         </Text>
-        
-        <ScrollView showsVerticalScrollIndicator={false}>
 
-          {/* Lógica por pestaña */}
-          {selectedTab === 'request' && solicitudes.map(item => (
-            <TouchableOpacity 
-              key={item.id} 
-              style={styles.listItem}
-              onPress={() => router.push({ pathname: '/(tabs)/mailbox/mbnotify', params: { id: item.id, usuario: item.usuario }})}
-            >
-              <View style={styles.avatarPlaceholder}><Ionicons name="person-outline" size={24} color="#666" /></View>
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.itemTitle}>{item.usuario}</Text>
-                <Text style={styles.itemSub}>{item.habilidad}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#ddd" />
-            </TouchableOpacity>
-          ))}
+        {loading ? (
+          <ActivityIndicator size="large" color={Colors.primary} />
+        ) : (
+          <ScrollView showsVerticalScrollIndicator={false}>
 
-          {selectedTab === 'reply' && respuestas.map(item => (
-            <TouchableOpacity 
-              key={item.id} 
-              style={styles.listItem}
-              onPress={() => abrirResolucion(item)}
-            >
-              <View style={[styles.avatarPlaceholder, { backgroundColor: item.estado === 'Aceptado' ? '#e8f5e9' : '#ffebee' }]}>
-                <Ionicons 
-                  name={item.estado === 'Aceptado' ? 'checkmark-circle' : 'close-circle'} 
-                  size={24} 
-                  color={item.estado === 'Aceptado' ? '#4caf50' : '#f44336'} 
-                />
-              </View>
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.itemTitle}>{item.usuario}</Text>
-                <Text style={[styles.itemSub, { color: item.estado === 'Aceptado' ? '#4caf50' : '#f44336' }]}>{item.estado}</Text>
-              </View>
-              <Ionicons name="eye-outline" size={20} color="#ddd" />
-            </TouchableOpacity>
-          ))}
+            {selectedTab === 'request' && solicitudesRecibidas.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.listItem}
+                onPress={() => abrirResolucion(item)}
+              >
+                <View style={styles.avatarPlaceholder}>
+                  <Ionicons name="person-outline" size={24} color="#666" />
+                </View>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.itemTitle}>{item.usuario}</Text>
+                  <Text style={styles.itemSub}>{item.habilidad}</Text>
+                  <Text style={styles.itemDate}>{estadoTexto(item.estado_id)}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#ddd" />
+              </TouchableOpacity>
+            ))}
 
-          {selectedTab === 'message' && mensajes.map(item => (
-            <TouchableOpacity 
-              key={item.id} 
-              style={styles.listItem}
-              onPress={() => router.push({ pathname: '/(tabs)/mailbox/mbchat', params: { id: item.id, nombreChat: item.usuario }})}
-            >
-              <View style={styles.avatarPlaceholder}><Ionicons name="chatbubbles-outline" size={24} color="#ff743dff" /></View>
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.itemTitle}>{item.usuario}</Text>
-                <Text style={styles.itemSub}>{item.ultimoMensaje}</Text>
-                <Text style={styles.itemDate}>{item.fecha}</Text>
+            {selectedTab === 'reply' && solicitudesEnviadas.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.listItem}
+                onPress={() => abrirResolucion(item)}
+              >
+                <View
+                  style={[
+                    styles.avatarPlaceholder,
+                    {
+                      backgroundColor:
+                        item.estado_id === 2 ? '#e8f5e9'
+                          : item.estado_id === 3 ? '#ffebee'
+                            : '#f5f5f5'
+                    }
+                  ]}
+                >
+                  <Ionicons
+                    name={
+                      item.estado_id === 2
+                        ? 'checkmark-circle'
+                        : item.estado_id === 3
+                          ? 'close-circle'
+                          : 'time-outline'
+                    }
+                    size={24}
+                    color={
+                      item.estado_id === 2
+                        ? '#4caf50'
+                        : item.estado_id === 3
+                          ? '#f44336'
+                          : '#999'
+                    }
+                  />
+                </View>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.itemTitle}>{item.usuario}</Text>
+                  <Text style={styles.itemSub}>{item.habilidad}</Text>
+                  <Text style={styles.itemDate}>{estadoTexto(item.estado_id)}</Text>
+                </View>
+                <Ionicons name="eye-outline" size={20} color="#ddd" />
+              </TouchableOpacity>
+            ))}
+
+            {selectedTab === 'message' && mensajes.length === 0 && (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="chatbubbles-outline" size={60} color="#ccc" />
+                <Text style={{ color: '#999', marginTop: 10 }}>Sin conversaciones aun</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#ddd" />
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+            )}
+
+            {!loading && selectedTab === 'request' && solicitudesRecibidas.length === 0 && (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="mail-open-outline" size={60} color="#ccc" />
+                <Text style={{ color: '#999', marginTop: 10 }}>No tienes solicitudes recibidas</Text>
+              </View>
+            )}
+
+            {!loading && selectedTab === 'reply' && solicitudesEnviadas.length === 0 && (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="send-outline" size={60} color="#ccc" />
+                <Text style={{ color: '#999', marginTop: 10 }}>No has enviado solicitudes</Text>
+              </View>
+            )}
+          </ScrollView>
+        )}
       </View>
 
-      {/* Modal Respuesta */}
       <Modal visible={modalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Resultado de Solicitud</Text>
+            <Text style={styles.modalTitle}>
+              {selectedTab === 'request' ? 'Resolver solicitud' : 'Detalle de solicitud'}
+            </Text>
+
             {selectedRespuesta && (
               <>
-                <Text style={styles.modalText}>Para: <Text style={{fontWeight: 'bold'}}>{selectedRespuesta.usuario}</Text></Text>
+                <Text style={styles.modalText}>
+                  Usuario: <Text style={{ fontWeight: 'bold' }}>{selectedRespuesta.usuario}</Text>
+                </Text>
                 <Text style={styles.modalText}>Habilidad: {selectedRespuesta.habilidad}</Text>
-                <View style={[styles.statusBadge, { backgroundColor: selectedRespuesta.estado === 'Aceptado' ? '#4caf50' : '#f44336' }]}>
-                  <Text style={styles.statusBadgeText}>{selectedRespuesta.estado}</Text>
-                </View>
+                <Text style={styles.modalText}>Estado: {estadoTexto(selectedRespuesta.estado_id)}</Text>
 
-                <TouchableOpacity 
-                  style={[styles.modalButton, { backgroundColor: selectedRespuesta.estado === 'Aceptado' ? '#ff743dff' : '#666' }]}
-                  onPress={() => {
-                    setModalVisible(false);
-                    if(selectedRespuesta.estado === 'Aceptado') router.push('/(tabs)/mailbox/mbchat');
-                  }}
-                >
-                  <Text style={styles.modalButtonText}>
-                    {selectedRespuesta.estado === 'Aceptado' ? 'Ir al Chat' : 'Entendido / Finalizar'}
-                  </Text>
-                </TouchableOpacity>
+                {selectedTab === 'request' && selectedRespuesta.estado_id === 1 ? (
+                  <>
+                    <TouchableOpacity
+                      style={[styles.modalButton, { backgroundColor: '#4caf50' }]}
+                      onPress={() => handleAceptar(selectedRespuesta.id)}
+                    >
+                      <Text style={styles.modalButtonText}>Aceptar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.modalButton, { backgroundColor: '#f44336' }]}
+                      onPress={() => handleRechazar(selectedRespuesta.id)}
+                    >
+                      <Text style={styles.modalButtonText}>Rechazar</Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.modalButton, { backgroundColor: Colors.colorCard }]}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <Text style={styles.modalButtonText}>Cerrar</Text>
+                  </TouchableOpacity>
+                )}
               </>
             )}
           </View>
@@ -150,91 +267,80 @@ export default function Mailbox() {
   );
 }
 
-//Estilos Propios
 const styles = StyleSheet.create({
-  // Selector de Pestañas
-  selectorContainer: { 
-    flexDirection: 'row', 
-    backgroundColor: Colors.card, 
-    marginHorizontal: 20, 
-    marginTop: 20, 
-    borderRadius: 12, 
-    padding: 4, 
-    elevation: 2 
+  selectorContainer: {
+    flexDirection: 'row',
+    backgroundColor: Colors.card,
+    marginHorizontal: 20,
+    marginTop: 20,
+    borderRadius: 12,
+    padding: 4,
+    elevation: 2
   },
-  //Contenido Sección  
-  listItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingVertical: 15, 
-    borderBottomWidth: 1, 
-    borderBottomColor: Colors.borderLight 
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight
   },
-  avatarPlaceholder: { 
-    width: 50, 
-    height: 50, 
-    borderRadius: 25, 
-    backgroundColor: '#f9f9f9', 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  avatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#f9f9f9',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  itemTitle: { 
-    fontSize: 15, 
-    fontWeight: 'bold' 
+  itemTitle: {
+    fontSize: 15,
+    fontWeight: 'bold'
   },
-  itemSub: { 
-    fontSize: 13, 
-    color: Colors.textMuted 
+  itemSub: {
+    fontSize: 13,
+    color: Colors.textMuted
   },
-  itemDate: { 
-    fontSize: 11, 
-    color: Colors.textPlaceholder, 
-    marginRight: 10 
+  itemDate: {
+    fontSize: 11,
+    color: Colors.textPlaceholder,
+    marginRight: 10
   },
-  
-  // Estilos del Modal
-  modalOverlay: { 
-    flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.5)', 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 40
   },
-  modalContent: { 
-    width: '80%', 
-    backgroundColor: Colors.card, 
-    borderRadius: 20, 
-    padding: 25, 
-    alignItems: 'center' 
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  modalTitle: { 
-    fontSize: 20, 
-    fontWeight: 'bold', 
-    marginBottom: 15 
+  modalContent: {
+    width: '80%',
+    backgroundColor: Colors.card,
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center'
   },
-  modalText: { 
-    fontSize: 16, 
-    marginBottom: 10 
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15
   },
-  statusBadge: { 
-    paddingHorizontal: 20, 
-    paddingVertical: 5, 
-    borderRadius: 20, 
-    marginVertical: 15 
+  modalText: {
+    fontSize: 16,
+    marginBottom: 10
   },
-  statusBadgeText: { 
-    color: Colors.textLight, 
-    fontWeight: 'bold' 
+  modalButton: {
+    width: '100%',
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 10
   },
-  modalButton: { 
-    width: '100%', 
-    padding: 15, 
-    borderRadius: 12, 
-    alignItems: 'center', 
-    marginTop: 10 
-  },
-  modalButtonText: { 
-    color: Colors.textLight, 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  modalButtonText: {
+    color: Colors.textLight,
+    fontWeight: 'bold',
+    fontSize: 16
   }
 });
