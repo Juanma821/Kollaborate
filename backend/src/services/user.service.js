@@ -12,7 +12,7 @@ const getUserById = async (id) => {
     try {
         connection = await db.getConnection();
 
-        const result = await connection.execute(
+        const userResult = await connection.execute(
             `SELECT
                 u.id,
                 u.email,
@@ -31,8 +31,22 @@ const getUserById = async (id) => {
             { id }
         );
 
-        const user = result.rows[0];
+        const user = userResult.rows[0];
         if (!user) return null;
+
+        const skillsResult = await connection.execute(
+            `SELECT h.id, h.nombre, uh.tipo
+             FROM usuario_habilidades uh
+             JOIN habilidades h ON h.id = uh.habilidad_id
+             WHERE uh.usuario_id = :id`,
+            { id }
+        );
+
+        const skills = skillsResult.rows.map((row) => ({
+            id: row.ID,
+            nombre: row.NOMBRE,
+            tipo: row.TIPO
+        }));
 
         return {
             id: user.ID,
@@ -45,13 +59,16 @@ const getUserById = async (id) => {
             fecha_nacimiento: user.FECHA_NACIMIENTO,
             rol: user.ROL,
             institucion_id: user.INSTITUCION_ID || null,
-            institucion_nombre: user.INSTITUCION_NOMBRE || null
+            institucion_nombre: user.INSTITUCION_NOMBRE || null,
+            ofrezco: skills.filter((s) => s.tipo === 'Ofrece'),
+            busco: skills.filter((s) => s.tipo === 'Busca')
         };
 
     } finally {
         if (connection) await connection.close();
     }
 };
+
 
 // UPDATE USUARIO
 const updateUser = async (id, data) => {

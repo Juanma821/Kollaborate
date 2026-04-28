@@ -147,6 +147,8 @@ export type UserProfile = {
   institucion_id?: number | null;
   institucion_nombre?: string | null;
   fecha_nacimiento?: string | null;
+  ofrezco?: { id: number; nombre: string }[];
+  busco?: { id: number; nombre: string }[];
 };
 
 export const getUserProfileRequest = (token: string, userId: number) =>
@@ -172,4 +174,50 @@ export const updateUserProfileRequest = (
     token,
     body: payload,
   });
+
+export type MatchItem = {
+  id: number;
+  nombre: string;
+  apellido: string;
+  alias: string;
+  habilidades: string[];
+};
+
+export type MatchProfile = {
+  id: number;
+  nombre: string;
+  apellido: string;
+  alias: string;
+  reputacion: number;
+  rol?: string;
+  institucion_nombre?: string | null;
+  ofrezco: { id: number; nombre: string }[];
+  busco: { id: number; nombre: string }[];
+};
+
+export const getMatchesRequest = (token: string) =>
+  request<MatchItem[]>('/match', {
+    method: 'GET',
+    token,
+  });
+
+export const getMatchProfileRequest = (token: string, userId: number) =>
+  request<MatchProfile>(`/match/${userId}`, {
+    method: 'GET',
+    token,
+  });
+
+export const createSolicitudRequest = (
+  token: string,
+  payload: {
+    receptor_id: number;
+    habilidad_id: number;
+  }
+) =>
+  request<{ id: number; message: string }>('/solicitudes', {
+    method: 'POST',
+    token,
+    body: payload,
+  });
+
 

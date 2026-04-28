@@ -44,4 +44,60 @@ const getMatches = async (userId) => {
     }
 };
 
-module.exports = { getMatches };
+const getMatchProfileById = async (userId) => {
+    let connection;
+
+    try {
+        connection = await db.getConnection();
+
+        const userResult = await connection.execute(
+            `SELECT 
+                u.id,
+                u.nombre,
+                u.apellido,
+                u.alias,
+                u.reputacion_promedio,
+                u.rol,
+                i.nombre AS institucion_nombre
+             FROM usuarios u
+             LEFT JOIN instituciones i ON i.id = u.institucion_id
+             WHERE u.id = :id`,
+            { id: userId },
+            { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
+        );
+
+        const user = userResult.rows[0];
+        if (!user) return null;
+
+        const skillsResult = await connection.execute(
+            `SELECT h.id, h.nombre, uh.tipo
+             FROM usuario_habilidades uh
+             JOIN habilidades h ON h.id = uh.habilidad_id
+             WHERE uh.usuario_id = :id`,
+            { id: userId },
+            { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
+        );
+
+        return {
+            id: user.ID,
+            nombre: user.NOMBRE,
+            apellido: user.APELLIDO,
+            alias: user.ALIAS,
+            reputacion: user.REPUTACION_PROMEDIO || 0,
+            rol: user.ROL,
+            institucion_nombre: user.INSTITUCION_NOMBRE || null,
+            ofrezco: skillsResult.rows
+                .filter((row) => row.TIPO === 'Ofrece')
+                .map((row) => ({ id: row.ID, nombre: row.NOMBRE })),
+            busco: skillsResult.rows
+                .filter((row) => row.TIPO === 'Busca')
+                .map((row) => ({ id: row.ID, nombre: row.NOMBRE }))
+        };
+
+    } finally {
+        if (connection) await connection.close();
+    }
+};
+
+
+module.exports = { getMatches, getMatchProfileById };
