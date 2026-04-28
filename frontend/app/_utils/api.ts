@@ -136,3 +136,40 @@ export const changePasswordRequest = (
     token,
     body: { currentPassword, newPassword },
   });
+
+export type UserProfile = {
+  id: number;
+  email: string;
+  nombre: string;
+  apellido: string;
+  alias: string;
+  rol?: string;
+  institucion_id?: number | null;
+  institucion_nombre?: string | null;
+  fecha_nacimiento?: string | null;
+};
+
+export const getUserProfileRequest = (token: string, userId: number) =>
+  request<UserProfile>(`/users/${userId}`, {
+    method: 'GET',
+    token,
+  });
+
+export const updateUserProfileRequest = (
+  token: string,
+  userId: number,
+  payload: {
+    nombre: string;
+    apellido: string;
+    alias: string;
+    email?: string;
+    institucion_id?: number | null;
+    fecha_nacimiento?: string | null;
+  }
+) =>
+  request<UserProfile>(`/users/${userId}`, {
+    method: 'PUT',
+    token,
+    body: payload,
+  });
+

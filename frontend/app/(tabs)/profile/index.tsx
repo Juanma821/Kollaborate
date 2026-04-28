@@ -19,6 +19,8 @@ type ProfileUser = {
   apellido: string;
   alias: string;
   rol?: string;
+  institucion_id?: number | null;
+  institucion_nombre?: string | null;
 };
 
 export default function Profile() {
@@ -56,8 +58,9 @@ export default function Profile() {
         <View style={styles.leftColumn}>
           <Image source={ProfileIcon} style={styles.profileImage} />
           <Text style={globalStyles.userName}>@{user?.alias || 'Usuario'}</Text>
-          <Text style={globalStyles.institution}>{user?.email || 'Sin correo'}</Text>
-
+          <Text style={globalStyles.institution}>
+                {user?.institucion_nombre || user?.email || 'Sin datos'}
+          </Text>
           <View style={globalStyles.rankContainer}>
             <Ionicons name="ribbon-sharp" size={24} color="#FFD700" />
             <Text style={globalStyles.rankText}>{user?.rol || 'estudiante'}</Text>

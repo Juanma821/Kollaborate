@@ -1,6 +1,11 @@
 import * as SecureStore from 'expo-secure-store';
 import type { AuthUser } from './api';
 
+export type StoredUser = AuthUser & {
+  institucion_id?: number | null;
+  institucion_nombre?: string | null;
+};
+
 const TOKEN_KEY = 'token';
 const USER_KEY = 'user';
 const RECOVERY_EMAIL_KEY = 'recovery_email';
@@ -15,16 +20,21 @@ export const getToken = async () => {
   return SecureStore.getItemAsync(TOKEN_KEY);
 };
 
-export const getStoredUser = async (): Promise<AuthUser | null> => {
+export const getStoredUser = async (): Promise<StoredUser | null> => {
   const raw = await SecureStore.getItemAsync(USER_KEY);
   if (!raw) return null;
 
   try {
-    return JSON.parse(raw) as AuthUser;
+    return JSON.parse(raw) as StoredUser;
   } catch {
     return null;
   }
 };
+
+export const updateStoredUser = async (user: StoredUser) => {
+  await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+};
+
 
 export const clearAuthSession = async () => {
   await SecureStore.deleteItemAsync(TOKEN_KEY);
