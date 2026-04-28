@@ -7,12 +7,13 @@ const getAllInstitutions = async () => {
         const result = await connection.execute(
             `SELECT id, nombre FROM instituciones ORDER BY nombre ASC`,
             [],
-            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+            { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
         );
+
         return result.rows.map(row => ({
             id: row.ID,
             nombre: row.NOMBRE
-        })); 
+        }));
     } finally {
         if (connection) await connection.close();
     }

@@ -1,84 +1,108 @@
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, View, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 
-import { Colors } from '../assets/images/constants/Colors';
 import { globalStyles } from '../assets/images/constants/globalStyles';
-
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; // install
-import IconApp from '../assets/images/IconApp.png'; //Import
-
-import { router } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import IconApp from '../assets/images/IconApp.png';
+import { loginRequest } from './_utils/api';
+import { saveAuthSession } from './_utils/authStorage';
 
 export default function Login() {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleLogin = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !password) {
+      setError('Ingresa tu correo y tu contrasena');
+      return;
+    }
+
     try {
-      const res = await fetch("http://192.168.1.12:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      setLoading(true);
+      setError('');
 
-      if (!res.ok) {
-        alert("Credenciales incorrectas");
-        return;
-      }
-
-      const data = await res.json();
-
-      await SecureStore.setItemAsync("token", data.token);
-
-      router.replace("/(tabs)/home");
-
-      } catch (error) {
-        alert("Error de conexión");
-        console.log(error);
-      }
-    };
-  
+      const data = await loginRequest(normalizedEmail, password);
+      await saveAuthSession(data.token, data.user);
+      router.replace('/(tabs)/home');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error de conexion';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}>
       <View style={[globalStyles.containerAuth, { paddingTop: insets.top }]}>
-
-        {/* SECCIÓN SUPERIOR: Logo */}
         <View style={globalStyles.iconContainerAuthA}>
           <Image source={IconApp} style={globalStyles.profileImageAuthA} />
-          <Text style={globalStyles.titleAuth}>¡Bienvenido!</Text>
+          <Text style={globalStyles.titleAuth}>Bienvenido</Text>
           <Link href="/signup">
-            <Text style={globalStyles.subtitleAuth}>¿No tienes una cuenta? <Text style={globalStyles.linkTextAuth}>Regístrate aquí</Text></Text>
+            <Text style={globalStyles.subtitleAuth}>
+              No tienes una cuenta? <Text style={globalStyles.linkTextAuth}>Registrate aqui</Text>
+            </Text>
           </Link>
         </View>
 
-        {/* SECCIÓN INFERIOR: Formulario y Botones */}
         <View style={globalStyles.bottomSectionAuth}>
           <View style={globalStyles.formAuth}>
             <Text style={globalStyles.labelAuth}>Email</Text>
-            <TextInput style={globalStyles.inputAuth} value={email} onChangeText={setEmail} placeholder="correo@ejemplo.com" placeholderTextColor="#aaa" />
+            <TextInput
+              style={globalStyles.inputAuth}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="correo@ejemplo.com"
+              placeholderTextColor="#aaa"
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
 
-            <Text style={globalStyles.labelAuth}>Contraseña</Text>
-            <TextInput style={globalStyles.inputAuth} value={password} onChangeText={setPassword} placeholder="********" secureTextEntry placeholderTextColor="#aaa" />
+            <Text style={globalStyles.labelAuth}>Contrasena</Text>
+            <TextInput
+              style={globalStyles.inputAuth}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="********"
+              secureTextEntry
+              placeholderTextColor="#aaa"
+            />
 
             <TouchableOpacity>
-              <Link href="/recoverpass"><Text style={[globalStyles.linkTextAuth, { textAlign: 'center' }]}>¿Olvidaste tu contraseña?</Text></Link>
+              <Link href="/recoverpass">
+                <Text style={[globalStyles.linkTextAuth, { textAlign: 'center' }]}>
+                  Olvidaste tu contrasena?
+                </Text>
+              </Link>
             </TouchableOpacity>
+
+            {!!error && (
+              <Text style={[globalStyles.linkTextAuth, { textAlign: 'center', marginTop: 10 }]}>
+                {error}
+              </Text>
+            )}
           </View>
 
-            <TouchableOpacity style={globalStyles.buttonAuth} onPress={handleLogin}>
-              <Text style={globalStyles.buttonTextAuth}>Iniciar Sesión</Text>
-            </TouchableOpacity>
-
+          <TouchableOpacity
+            style={[globalStyles.buttonAuth, loading && { opacity: 0.7 }]}
+            onPress={handleLogin}
+            disabled={loading}>
+            <Text style={globalStyles.buttonTextAuth}>
+              {loading ? 'Ingresando...' : 'Iniciar Sesion'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </KeyboardAvoidingView>
   );
 }
+
 
