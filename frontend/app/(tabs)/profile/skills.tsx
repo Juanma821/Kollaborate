@@ -8,6 +8,10 @@ import { Ionicons } from '@expo/vector-icons'; //install
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; //install
 import * as SecureStore from 'expo-secure-store'; //install
 
+import { API_BASE_URL } from '../../_utils/api';
+import { getToken } from '../../_utils/authStorage';
+
+
 // Definición tipos
 interface Skill {
   id: number;
@@ -36,11 +40,11 @@ export default function Skills() {
   //Funciones
   const fetchUserSkills = async () => {
     try {
-      const token = await SecureStore.getItemAsync('userToken');
-      const url = 'http://localhost:3000/api/skills/user';
+      const token = await getToken();
+      const url = `${API_BASE_URL}/skills/user`;
 
       const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       const text = await response.text();
@@ -67,7 +71,7 @@ export default function Skills() {
     if (text.trim().length > 1) {
       setIsLoading(true);
       try {
-        const url = `http://localhost:3000/api/skills/search?q=${text}`;
+        const url = `${API_BASE_URL}/skills/search?q=${encodeURIComponent(text)}`;
         console.log("🔗 Intentando conectar a:", url);
 
         const response = await fetch(url);
@@ -105,9 +109,9 @@ export default function Skills() {
     }
 
     try {
-      const token = await SecureStore.getItemAsync('userToken');
+      const token = await getToken();
       const accion = type === 'ofrezco' ? 'offer' : 'want';
-      const url = `http://localhost:3000/api/skills/${skill.id}/${accion}`;
+      const url = `${API_BASE_URL}/skills/${skill.id}/${accion}`;
 
       console.log("🚀 Intentando guardar en:", url);
 
@@ -141,9 +145,9 @@ export default function Skills() {
 
   const removeSkill = async (skillId: number, type: 'ofrezco' | 'busco') => {
     try {
-      const token = await SecureStore.getItemAsync('userToken');
+      const token = await getToken();
       const accion = type === 'ofrezco' ? 'offer' : 'want';
-      const url = `http://localhost:3000/api/skills/${skillId}/${accion}`;
+      const url = `${API_BASE_URL}/skills/${skillId}/${accion}`;
 
       const response = await fetch(url, {
         method: 'DELETE',

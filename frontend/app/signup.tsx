@@ -61,6 +61,11 @@ export default function Signup() {
       return;
     }
 
+    if (!institucion) {
+      setError('Selecciona una institucion');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Las contrasenas no coinciden');
       return;
@@ -76,6 +81,7 @@ export default function Signup() {
         alias: normalizedAlias,
         email: normalizedEmail,
         password,
+        institucion_id: Number(institucion),
       });
 
       const loginData = await loginRequest(normalizedEmail, password);

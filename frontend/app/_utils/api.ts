@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
+  token?: string;
 };
 
 export type AuthUser = {
@@ -56,6 +57,10 @@ const request = async <T>(path: string, options: RequestOptions = {}): Promise<T
     ...(options.headers as Record<string, string> | undefined),
   };
 
+  if (options.token) {
+    headers.Authorization = `Bearer ${options.token}`;
+  }
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers,
@@ -97,6 +102,7 @@ export const registerRequest = (payload: {
   alias: string;
   email: string;
   password: string;
+  institucion_id?: number | null;
 }) =>
   request<AuthUser>('/auth/register', {
     method: 'POST',
@@ -106,4 +112,27 @@ export const registerRequest = (payload: {
 export const getInstitutionsRequest = () =>
   request<Institution[]>('/institutions', {
     method: 'GET',
+  });
+
+export const forgotPasswordRequest = (email: string) =>
+  request<{ success: boolean; message: string; codigo?: string }>('/auth/forgot-password', {
+    method: 'POST',
+    body: { email },
+  });
+
+export const resetPasswordRequest = (email: string, codigo: string, newPassword: string) =>
+  request<{ success: boolean; message: string }>('/auth/reset-password', {
+    method: 'PUT',
+    body: { email, codigo, newPassword },
+  });
+
+export const changePasswordRequest = (
+  token: string,
+  currentPassword: string,
+  newPassword: string
+) =>
+  request<{ success: boolean; message: string }>('/users/change-password', {
+    method: 'PUT',
+    token,
+    body: { currentPassword, newPassword },
   });

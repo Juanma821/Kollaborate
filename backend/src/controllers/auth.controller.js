@@ -1,10 +1,7 @@
 const jwt = require('jsonwebtoken');
 const authService = require('../services/auth.service');
 
-
-// =========================
 // LOGIN
-// =========================
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -23,14 +20,7 @@ const login = async (req, res) => {
 
         return res.json({
             token,
-            user: {
-                id: user.id,
-                email: user.email,
-                nombre: user.nombre,
-                apellido: user.apellido,
-                alias: user.alias,
-                rol: user.rol
-            }
+            user
         });
 
     } catch (error) {
@@ -39,12 +29,10 @@ const login = async (req, res) => {
     }
 };
 
-
 // REGISTER
-// =========================
 const register = async (req, res) => {
     try {
-        const { email, password, nombre, apellido, alias } = req.body;
+        const { email, password, nombre, apellido, alias, institucion_id } = req.body;
 
         if (!email || !password || !nombre || !apellido || !alias) {
             return res.status(400).json({ error: 'Faltan campos obligatorios' });
@@ -55,21 +43,15 @@ const register = async (req, res) => {
             password,
             nombre,
             apellido,
-            alias
+            alias,
+            institucion_id
         );
 
         if (!user) {
             return res.status(400).json({ error: 'Usuario ya existe o alias en uso' });
         }
 
-        return res.json({
-            id: user.id,
-            email: user.email,
-            nombre: user.nombre,
-            apellido: user.apellido,
-            alias: user.alias,
-            rol: user.rol || 'estudiante'
-        });
+        return res.json(user);
 
     } catch (error) {
         console.error(error);
@@ -77,8 +59,6 @@ const register = async (req, res) => {
     }
 };
 
-// FORGOT PASSWORD
-// =========================
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -96,9 +76,6 @@ const forgotPassword = async (req, res) => {
     }
 };
 
-
-// RESET PASSWORD
-// =========================
 const resetPassword = async (req, res) => {
     try {
         const { email, codigo, newPassword } = req.body;
@@ -116,8 +93,6 @@ const resetPassword = async (req, res) => {
     }
 };
 
-// LOGOUT
-// =========================
 const logout = async (req, res) => {
     return res.json({
         success: true,

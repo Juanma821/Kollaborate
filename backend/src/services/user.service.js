@@ -5,9 +5,7 @@ const isValidEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
-
-//  GET USUARIO
-// =========================
+// GET USUARIO
 const getUserById = async (id) => {
     let connection;
 
@@ -15,15 +13,21 @@ const getUserById = async (id) => {
         connection = await db.getConnection();
 
         const result = await connection.execute(
-            `SELECT 
-                id, email, nombre, apellido,
-                alias,
-                reputacion_promedio,
-                foto_url,
-                fecha_nacimiento,
-                rol
-             FROM usuarios
-             WHERE id = :id`,
+            `SELECT
+                u.id,
+                u.email,
+                u.nombre,
+                u.apellido,
+                u.alias,
+                u.reputacion_promedio,
+                u.foto_url,
+                u.fecha_nacimiento,
+                u.rol,
+                u.institucion_id,
+                i.nombre AS institucion_nombre
+             FROM usuarios u
+             LEFT JOIN instituciones i ON i.id = u.institucion_id
+             WHERE u.id = :id`,
             { id }
         );
 
@@ -39,7 +43,9 @@ const getUserById = async (id) => {
             reputacion: user.REPUTACION_PROMEDIO || 0,
             foto: user.FOTO_URL,
             fecha_nacimiento: user.FECHA_NACIMIENTO,
-            rol: user.ROL
+            rol: user.ROL,
+            institucion_id: user.INSTITUCION_ID || null,
+            institucion_nombre: user.INSTITUCION_NOMBRE || null
         };
 
     } finally {
@@ -47,10 +53,7 @@ const getUserById = async (id) => {
     }
 };
 
-
-
-//  UPDATE USUARIO
-// =========================
+// UPDATE USUARIO
 const updateUser = async (id, data) => {
     let connection;
 
@@ -61,10 +64,9 @@ const updateUser = async (id, data) => {
             throw new Error('Nombre y apellido son obligatorios');
         }
 
-        // Validar email SOLO si viene
         if (data.email) {
             if (!isValidEmail(data.email)) {
-                throw new Error('Email inválido');
+                throw new Error('Email invalido');
             }
 
             const existing = await connection.execute(
@@ -73,39 +75,34 @@ const updateUser = async (id, data) => {
             );
 
             if (existing.rows.length > 0) {
-                throw new Error('El email ya está en uso');
+                throw new Error('El email ya esta en uso');
             }
         }
 
-        // Validar alias
-        if (data.alias && data.alias.trim() !== "") {
+        if (data.alias && data.alias.trim() !== '') {
             const existingAlias = await connection.execute(
                 `SELECT id FROM usuarios WHERE alias = :alias AND id != :id`,
                 { alias: data.alias, id }
             );
 
             if (existingAlias.rows.length > 0) {
-                throw new Error('Este alias ya está siendo usado');
+                throw new Error('Este alias ya esta siendo usado');
             }
         }
 
-        const sql = `
-            UPDATE usuarios
-            SET nombre = :nombre,
-                apellido = :apellido,
-                email = COALESCE(:email, email),
-                alias = :alias,
-                institucion_id = :institucion_id,
-                fecha_nacimiento = CASE
+        await connection.execute(
+            `UPDATE usuarios
+             SET nombre = :nombre,
+                 apellido = :apellido,
+                 email = COALESCE(:email, email),
+                 alias = :alias,
+                 institucion_id = :institucion_id,
+                 fecha_nacimiento = CASE
                     WHEN :fecha_nacimiento IS NOT NULL
                     THEN TO_DATE(:fecha_nacimiento, 'YYYY-MM-DD')
                     ELSE fecha_nacimiento
-                END
-            WHERE id = :id
-        `;
-
-        await connection.execute(
-            sql,
+                 END
+             WHERE id = :id`,
             {
                 id,
                 nombre: data.nombre.trim(),
@@ -125,14 +122,12 @@ const updateUser = async (id, data) => {
     }
 };
 
-//  UPDATE PASSWORD
-// =========================
+// UPDATE PASSWORD
 const updatePassword = async (id, currentPassword, newPassword) => {
     let connection;
     try {
         connection = await db.getConnection();
 
-        // Buscar Contraseña
         const result = await connection.execute(
             `SELECT password_hash FROM usuarios WHERE id = :id`,
             { id }
@@ -142,27 +137,22 @@ const updatePassword = async (id, currentPassword, newPassword) => {
 
         const hashedPassword = result.rows[0].PASSWORD_HASH;
 
-        // Comparar Contraseña
         const isMatch = await bcrypt.compare(currentPassword, hashedPassword);
         if (!isMatch) {
-            throw new Error('La contraseña actual es incorrecta');
+            throw new Error('La contrasena actual es incorrecta');
         }
 
-        // Encriptar Nueva Contraseña
         const salt = await bcrypt.genSalt(10);
         const newHashedPassword = await bcrypt.hash(newPassword, salt);
 
-        // Actualizar
         await connection.execute(
             `UPDATE usuarios SET password_hash = :password_hash WHERE id = :id`,
             { password_hash: newHashedPassword, id },
             { autoCommit: true }
         );
 
-        return { success: true, message: 'Contraseña actualizada correctamente' };
+        return { success: true, message: 'Contrasena actualizada correctamente' };
 
-    } catch (error) {
-        throw error;
     } finally {
         if (connection) await connection.close();
     }

@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
 import { router } from 'expo-router';
-import { StyleSheet, Text, View, Switch, ScrollView, TouchableOpacity, Modal, TextInput, Alert} from 'react-native';
+import { StyleSheet, Text, View, Switch, ScrollView, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
 
 import { Colors } from '../../../../assets/images/constants/Colors';
 import { globalStyles } from '../../../../assets/images/constants/globalStyles';
 
-import * as SecureStore from 'expo-secure-store'; //install
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; //install
-import Feather from '@expo/vector-icons/Feather'; //install
-import Ionicons from '@expo/vector-icons/Ionicons'; //install
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Feather from '@expo/vector-icons/Feather';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import * as SecureStore from 'expo-secure-store';
+import { changePasswordRequest } from '../../../_utils/api';
+import { clearAuthSession, getToken } from '../../../_utils/authStorage';
 
 export default function Configuration() {
   const insets = useSafeAreaInsets();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true);
 
-  // Colores para Tema oscuro(beta)
   const theme = {
     background: isDarkMode ? '#121212' : globalStyles.containerApp.backgroundColor || '#F5F5F5',
     surface: isDarkMode ? '#1E1E1E' : Colors.whiteBg,
@@ -25,47 +25,41 @@ export default function Configuration() {
     subtext: isDarkMode ? '#A0A0A0' : '#666666',
   };
 
-  // Estados para el Modal
   const [modalVisible, setModalVisible] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Tema Oscuro (Beta)
   const toggleDarkMode = async (value: boolean) => {
     setIsDarkMode(value);
     await SecureStore.setItemAsync('darkMode', JSON.stringify(value));
   };
 
-  // Notificaciones (Beta - Simulación)
   const toggleNotifications = async (value: boolean) => {
     setIsNotificationsEnabled(value);
     await SecureStore.setItemAsync('notifications', JSON.stringify(value));
     if (value) {
-      Alert.alert("Aviso", "Has activado las notificaciones push.");
+      Alert.alert('Aviso', 'Has activado las notificaciones push.');
     }
   };
 
-  // Cerrar sesión
   const handleLogout = () => {
     Alert.alert(
-      "Cerrar Sesión",
-      "¿Estás seguro de que quieres salir?",
+      'Cerrar sesion',
+      'Estas seguro de que quieres salir?',
       [
-        { text: "Cancelar", style: "cancel" },
+        { text: 'Cancelar', style: 'cancel' },
         {
-          text: "Sí, salir",
-          style: "destructive",
+          text: 'Si, salir',
+          style: 'destructive',
           onPress: async () => {
             try {
-              await SecureStore.deleteItemAsync('userToken'); //ojo
-              await SecureStore.deleteItemAsync('userData');
+              await clearAuthSession();
               router.replace('/login');
-
             } catch (error) {
-              console.error("Error al cerrar sesión:", error);
-              Alert.alert("Error", "No se pudo cerrar la sesión correctamente.");
+              console.error('Error al cerrar sesion:', error);
+              Alert.alert('Error', 'No se pudo cerrar la sesion correctamente.');
             }
           }
         }
@@ -73,7 +67,6 @@ export default function Configuration() {
     );
   };
 
-  // Limpiar Modal
   const resetModal = () => {
     setCurrentPassword('');
     setNewPassword('');
@@ -81,127 +74,105 @@ export default function Configuration() {
     setErrorMessage('');
   };
 
-  // Cambiar Contraseña
   const handleUpdatePassword = async () => {
-    setErrorMessage(''); // Limpiamos errores
+    setErrorMessage('');
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setErrorMessage("Todos los campos son obligatorios.");
+      setErrorMessage('Todos los campos son obligatorios.');
       return;
     }
 
     if (newPassword.length < 6) {
-      setErrorMessage("La nueva contraseña debe tener al menos 6 caracteres.");
+      setErrorMessage('La nueva contrasena debe tener al menos 6 caracteres.');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setErrorMessage("Las contraseñas nuevas no coinciden.");
+      setErrorMessage('Las contrasenas nuevas no coinciden.');
       return;
     }
 
     try {
-      // Token
-      const token = await SecureStore.getItemAsync('userToken');
+      const token = await getToken();
 
-      const response = await fetch('http://localhost:3000/api/users/change-password', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          currentPassword: currentPassword,
-          newPassword: newPassword
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // ÉXITO
-        Alert.alert("¡Éxito!", "Tu contraseña ha sido actualizada correctamente.");
-        setModalVisible(false);
-        resetModal();
-      } else {
-        // ERROR
-        setErrorMessage(data.error || "Error al actualizar");
+      if (!token) {
+        setErrorMessage('No hay sesion activa.');
+        return;
       }
 
+      const data = await changePasswordRequest(token, currentPassword, newPassword);
+
+      Alert.alert('Exito', data.message || 'Tu contrasena ha sido actualizada correctamente.');
+      setModalVisible(false);
+      resetModal();
     } catch (error) {
-      console.error("Error de conexión:", error);
-      setErrorMessage("No se pudo conectar con el servidor.");
+      const message = error instanceof Error ? error.message : 'No se pudo conectar con el servidor.';
+      setErrorMessage(message);
     }
   };
 
   return (
-<ScrollView 
+    <ScrollView
       style={[
-        globalStyles.containerApp, 
+        globalStyles.containerApp,
         { padding: 20, paddingTop: insets.top + 5, backgroundColor: theme.background }
       ]}
     >
-      {/* ÍTEM: MODO OSCURO */}
       <View style={[styles.settingItem, { borderBottomColor: theme.border }]}>
         <Text style={[styles.settingLabel, { color: theme.text }]}>Modo oscuro (BETA)</Text>
         <Switch
           value={isDarkMode}
           onValueChange={toggleDarkMode}
-          trackColor={{ false: "#767577", true: "#81b0ff" }}
+          trackColor={{ false: '#767577', true: '#81b0ff' }}
         />
       </View>
 
-      {/* ÍTEM: NOTIFICACIONES */}
       <View style={[styles.settingItem, { borderBottomColor: theme.border }]}>
         <Text style={[styles.settingLabel, { color: theme.text }]}>Notificaciones</Text>
         <Switch
           value={isNotificationsEnabled}
           onValueChange={toggleNotifications}
-          trackColor={{ false: "#767577", true: "#81b0ff" }}
+          trackColor={{ false: '#767577', true: '#81b0ff' }}
         />
       </View>
 
-      {/* ÍTEM: CAMBIAR CONTRASEÑA */}
-      <TouchableOpacity 
-        style={[styles.settingItem, { borderBottomColor: theme.border }]} 
+      <TouchableOpacity
+        style={[styles.settingItem, { borderBottomColor: theme.border }]}
         onPress={() => setModalVisible(true)}
       >
-        <Text style={[styles.settingLabel, { color: theme.text }]}>Cambiar contraseña</Text>
+        <Text style={[styles.settingLabel, { color: theme.text }]}>Cambiar contrasena</Text>
         <Feather name="lock" size={20} color={theme.subtext} />
       </TouchableOpacity>
 
-      {/* ÍTEM: REPORTAR */}
-      <TouchableOpacity 
-        style={[styles.settingItem, { borderBottomColor: theme.border }]} 
+      <TouchableOpacity
+        style={[styles.settingItem, { borderBottomColor: theme.border }]}
         onPress={() => router.push('/(tabs)/profile/configuration/report')}
       >
         <Text style={[styles.settingLabel, { color: theme.text }]}>Reportar un problema</Text>
         <Ionicons name="chevron-forward" size={24} color={theme.subtext} />
       </TouchableOpacity>
 
-      {/* BOTÓN CERRAR SESIÓN */}
-      <TouchableOpacity 
-        style={[styles.logoutButton, isDarkMode && { backgroundColor: '#441111', borderColor: '#661111' }]} 
+      <TouchableOpacity
+        style={[styles.logoutButton, isDarkMode && { backgroundColor: '#441111', borderColor: '#661111' }]}
         onPress={handleLogout}
       >
-        <Text style={[styles.settingLabel, { color: 'red', fontWeight: 'bold' }]}>Cerrar Sesión</Text>
+        <Text style={[styles.settingLabel, { color: 'red', fontWeight: 'bold' }]}>Cerrar sesion</Text>
         <Feather name="log-out" size={28} color="red" />
       </TouchableOpacity>
 
-      {/* MODAL DE CAMBIO DE CONTRASEÑA */}
       <Modal
         animationType="slide"
-        transparent={true}
+        transparent
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={globalStyles.modalOverlay}>
           <View style={[styles.modalView, { backgroundColor: theme.surface }]}>
             <Text style={[globalStyles.modalTitle, { textAlign: 'center', marginBottom: 20, color: theme.text }]}>
-              Cambiar Contraseña
+              Cambiar contrasena
             </Text>
 
-            <Text style={[globalStyles.label, { color: theme.text }]}>Contraseña Actual</Text>
+            <Text style={[globalStyles.label, { color: theme.text }]}>Contrasena actual</Text>
             <TextInput
               style={[styles.input, { color: theme.text, borderColor: theme.border }]}
               secureTextEntry
@@ -209,8 +180,8 @@ export default function Configuration() {
               onChangeText={setCurrentPassword}
               placeholderTextColor={theme.subtext}
             />
-            
-            <Text style={[globalStyles.label, { color: theme.text }]}>Nueva Contraseña</Text>
+
+            <Text style={[globalStyles.label, { color: theme.text }]}>Nueva contrasena</Text>
             <TextInput
               style={[styles.input, { color: theme.text, borderColor: theme.border }]}
               secureTextEntry
@@ -219,7 +190,7 @@ export default function Configuration() {
               placeholderTextColor={theme.subtext}
             />
 
-            <Text style={[globalStyles.label, { color: theme.text }]}>Confirmar Nueva Contraseña</Text>
+            <Text style={[globalStyles.label, { color: theme.text }]}>Confirmar nueva contrasena</Text>
             <TextInput
               style={[styles.input, { color: theme.text, borderColor: theme.border }]}
               secureTextEntry
@@ -228,7 +199,6 @@ export default function Configuration() {
               placeholderTextColor={theme.subtext}
             />
 
-            {/* ... Error Message y Botones (Mantienen su lógica) ... */}
             {errorMessage ? (
               <View style={styles.errorContainer}>
                 <Feather name="alert-circle" size={16} color="red" />
@@ -246,9 +216,9 @@ export default function Configuration() {
 
               <TouchableOpacity
                 style={[
-                    styles.button, 
-                    styles.buttonConfirm, 
-                    (!currentPassword || !newPassword || !confirmPassword) && styles.buttonConfirmDisabled
+                  styles.button,
+                  styles.buttonConfirm,
+                  (!currentPassword || !newPassword || !confirmPassword) && styles.buttonConfirmDisabled
                 ]}
                 onPress={handleUpdatePassword}
                 disabled={!currentPassword || !newPassword || !confirmPassword}
@@ -260,9 +230,8 @@ export default function Configuration() {
         </View>
       </Modal>
 
-      {/* TEXTO DE PIE DE PÁGINA (OPCIONAL) */}
       <Text style={{ color: theme.subtext, textAlign: 'center', marginTop: 20, fontSize: 12 }}>
-        Versión 1.0.0 (Beta)
+        Version 1.0.0 (Beta)
       </Text>
     </ScrollView>
   );
@@ -292,17 +261,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ffcccc',
   },
-  // ESTILOS DEL MODAL
   modalView: {
     width: '90%',
     backgroundColor: Colors.whiteBg,
     borderRadius: 20,
     padding: 35,
     shadowColor: Colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
@@ -349,7 +314,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 5,
   },
-  // Opcional: Botón desactivado
   buttonConfirmDisabled: {
     backgroundColor: '#A0A0A0',
   }

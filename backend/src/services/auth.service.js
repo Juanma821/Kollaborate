@@ -2,9 +2,7 @@ const db = require('../db');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
-
 // LOGIN
-// =========================
 const login = async (email, password) => {
     let connection;
 
@@ -18,9 +16,19 @@ const login = async (email, password) => {
         connection = await db.getConnection();
 
         const result = await connection.execute(
-            `SELECT id, email, nombre, apellido, alias, rol, password_hash 
-             FROM usuarios 
-             WHERE email = :email`,
+            `SELECT 
+                u.id,
+                u.email,
+                u.nombre,
+                u.apellido,
+                u.alias,
+                u.rol,
+                u.password_hash,
+                u.institucion_id,
+                i.nombre AS institucion_nombre
+             FROM usuarios u
+             LEFT JOIN instituciones i ON i.id = u.institucion_id
+             WHERE u.email = :email`,
             { email }
         );
 
@@ -38,7 +46,9 @@ const login = async (email, password) => {
             nombre: user.NOMBRE,
             apellido: user.APELLIDO,
             alias: user.ALIAS,
-            rol: user.ROL
+            rol: user.ROL,
+            institucion_id: user.INSTITUCION_ID,
+            institucion_nombre: user.INSTITUCION_NOMBRE || null
         };
 
     } catch (error) {
@@ -50,39 +60,32 @@ const login = async (email, password) => {
     }
 };
 
-
-// =========================
 // REGISTER
-// =========================
-const register = async (email, password, nombre, apellido, alias) => {
+const register = async (email, password, nombre, apellido, alias, institucion_id) => {
     let connection;
 
     try {
-        // Validaciones básicas
         if (!email || !password || !nombre || !apellido) {
             throw new Error('Todos los campos son obligatorios');
         }
 
         email = email.toLowerCase().trim();
 
-        if (alias){
+        if (alias) {
             alias = alias.trim().toLowerCase();
         }
 
-        // Validar email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             throw new Error('Email invalido');
         }
 
-        // Validar password
         if (password.length < 6) {
             throw new Error('La contrasena debe tener al menos 6 caracteres');
         }
 
         connection = await db.getConnection();
 
-        // Verificar email existente
         const existing = await connection.execute(
             `SELECT id FROM usuarios WHERE email = :email`,
             { email }
@@ -90,10 +93,7 @@ const register = async (email, password, nombre, apellido, alias) => {
 
         if (existing.rows.length > 0) return null;
 
-        // Normalizar alias
         if (alias) {
-            alias = alias.trim().toLowerCase();
-
             const existingAlias = await connection.execute(
                 `SELECT id FROM usuarios WHERE alias = :alias`,
                 { alias }
@@ -104,13 +104,36 @@ const register = async (email, password, nombre, apellido, alias) => {
             }
         }
 
-        // Hash password
+        if (institucion_id) {
+            const institutionExists = await connection.execute(
+                `SELECT id FROM instituciones WHERE id = :id`,
+                { id: Number(institucion_id) }
+            );
+
+            if (institutionExists.rows.length === 0) {
+                throw new Error('La institucion seleccionada no existe');
+            }
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // INSERT usuario
         const result = await connection.execute(
-            `INSERT INTO usuarios (nombre, apellido, email, password_hash, alias)
-             VALUES (:nombre, :apellido, :email, :password, :alias)
+            `INSERT INTO usuarios (
+                nombre,
+                apellido,
+                email,
+                password_hash,
+                alias,
+                institucion_id
+             )
+             VALUES (
+                :nombre,
+                :apellido,
+                :email,
+                :password,
+                :alias,
+                :institucion_id
+             )
              RETURNING id INTO :id`,
             {
                 nombre: nombre.trim(),
@@ -118,23 +141,38 @@ const register = async (email, password, nombre, apellido, alias) => {
                 email,
                 password: hashedPassword,
                 alias: alias || null,
+                institucion_id: institucion_id ? Number(institucion_id) : null,
                 id: { dir: db.oracledb.BIND_OUT, type: db.oracledb.NUMBER }
             }
         );
 
         await connection.commit();
 
+        let institucionNombre = null;
+
+        if (institucion_id) {
+            const institutionResult = await connection.execute(
+                `SELECT nombre FROM instituciones WHERE id = :id`,
+                { id: Number(institucion_id) }
+            );
+
+            institucionNombre = institutionResult.rows[0]?.NOMBRE || null;
+        }
+
         return {
             id: result.outBinds.id[0],
             email,
             nombre: nombre.trim(),
             apellido: apellido.trim(),
-            alias: alias || null
+            alias: alias || null,
+            rol: 'estudiante',
+            institucion_id: institucion_id ? Number(institucion_id) : null,
+            institucion_nombre: institucionNombre
         };
 
     } catch (error) {
         if (error.errorNum === 1) {
-            return null; 
+            return null;
         }
 
         console.error(error);
@@ -146,7 +184,6 @@ const register = async (email, password, nombre, apellido, alias) => {
 };
 
 // FORGOT PASSWORD
-// =========================
 const forgotPassword = async (email) => {
     let connection;
 
@@ -193,6 +230,12 @@ const forgotPassword = async (email) => {
 
         await connection.commit();
 
+        console.log('===================================');
+        console.log('CODIGO DE RECUPERACION GENERADO');
+        console.log('Correo:', normalizedEmail);
+        console.log('Codigo:', codigo);
+        console.log('===================================');
+
         return {
             success: true,
             message: 'Codigo de recuperacion generado',
@@ -204,10 +247,7 @@ const forgotPassword = async (email) => {
     }
 };
 
-
-// =========================
 // RESET PASSWORD
-// =========================
 const resetPassword = async (email, codigo, newPassword) => {
     let connection;
 
