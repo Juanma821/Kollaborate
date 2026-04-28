@@ -220,4 +220,3 @@ const styles = StyleSheet.create({
     })
   },
 });
-//
