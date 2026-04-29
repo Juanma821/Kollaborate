@@ -25,6 +25,7 @@ export type Institution = {
   nombre: string;
 };
 
+
 const getApiBaseUrl = () => {
   const constants = Constants as unknown as {
     expoConfig?: { hostUri?: string };
@@ -233,11 +234,38 @@ export type SolicitudesResponse = {
   enviadas: SolicitudItem[];
 };
 
-export const getSolicitudesRequest = (token: string) =>
-  request<SolicitudesResponse>('/solicitudes', {
+
+//Solicitudes
+export const getSolicitudesRecibidasRequest = (token: string) =>
+  request<SolicitudItem[]>('/solicitudes/recibidas', {
     method: 'GET',
     token,
   });
+
+//Notificaciones
+export const getSolicitudesEnviadasRequest = (token: string) =>
+  request<SolicitudItem[]>('/solicitudes/enviadas', {
+    method: 'GET',
+    token,
+  });
+
+//Chats
+export const getChatMatchesRequest = async (token: string): Promise<Match[]> => {
+    const response = await fetch(`${API_BASE_URL}/solicitudes/matches`, { // o tu ruta de matches
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al obtener matches');
+    }
+
+    return await response.json();
+};
 
 export const aceptarSolicitudRequest = (token: string, solicitudId: number) =>
   request<{ message: string }>(`/solicitudes/${solicitudId}/aceptar`, {
@@ -250,5 +278,49 @@ export const rechazarSolicitudRequest = (token: string, solicitudId: number) =>
     method: 'PUT',
     token,
   });
+
+export type Match = {
+  id: number;
+  nombreChat: string;
+  habilidad: string;
+};
+
+export const getMensajesRequest = async (token: string, sesionId: number) => {
+    const response = await fetch(`${API_BASE_URL}/mensajes/${sesionId}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al obtener mensajes');
+    }
+
+    return await response.json();
+};
+
+export const enviarMensajeRequest = async (token: string, sesionId: number, contenido: string) => {
+    const response = await fetch(`${API_BASE_URL}/mensajes`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            sesion_id: sesionId,
+            contenido: contenido,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al enviar el mensaje');
+    }
+
+    return await response.json();
+};
 
 

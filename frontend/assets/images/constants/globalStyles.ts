@@ -3,7 +3,7 @@ import { Colors } from './Colors';
 
 export const globalStyles = StyleSheet.create({
 
-//Autenticación
+    //Autenticación
     //Container Auth
     containerAuth: {
         flex: 1,
@@ -97,42 +97,42 @@ export const globalStyles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
-    
 
-//App Kollaborate
+
+    //App Kollaborate
     containerApp: {
         flex: 1,
         backgroundColor: Colors.appBg,
     },
-//General
+    //General
     //ContentSection Home/Profile(Index) 
     contentSectionA: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'center',
-        alignItems: 'center', 
+        alignItems: 'center',
         padding: 20,
     },
     //ContentSection Mailbox(Index)/Profile(Record)/Profile(Token)
-    contentSectionB: { 
-        flex: 1, 
-        marginTop: 25, 
-        backgroundColor: Colors.card, 
-        borderTopLeftRadius: 30, 
-        borderTopRightRadius: 30, 
-        paddingHorizontal: 25, 
-        paddingTop: 25 
+    contentSectionB: {
+        flex: 1,
+        marginTop: 25,
+        backgroundColor: Colors.card,
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+        paddingHorizontal: 25,
+        paddingTop: 25
     },
     //Section Title Mailbox(index)/Record/Token
-    sectionTitle: { 
-        fontSize: 18, 
+    sectionTitle: {
+        fontSize: 18,
         fontWeight: '700',
-        color: Colors.textDark, 
+        color: Colors.textDark,
         marginBottom: 15,
-        textAlign: 'center'    
+        textAlign: 'center'
     },
 
-//Profile
+    //Profile
     //Pagina Record/Token
     selectorContainer: {
         flexDirection: 'row',
@@ -168,20 +168,20 @@ export const globalStyles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: Colors.borderLight,
     },
-    itemDate: { 
-        fontSize: 12, 
-        color: Colors.textPlaceholder, 
-        marginTop: 2 
+    itemDate: {
+        fontSize: 12,
+        color: Colors.textPlaceholder,
+        marginTop: 2
     },
-    itemDescription: { 
-        fontSize: 15, 
-        color: Colors.textDark 
+    itemDescription: {
+        fontSize: 15,
+        color: Colors.textDark
     },
-    positiveAmount: { 
-        color: Colors.success 
+    positiveAmount: {
+        color: Colors.success
     },
-    negativeAmount: { 
-        color: Colors.error 
+    negativeAmount: {
+        color: Colors.error
     },
 
     //Pagina EditProfile/Statistics
@@ -189,7 +189,7 @@ export const globalStyles = StyleSheet.create({
         paddingHorizontal: 25,
         paddingBottom: 40,
     },
-    
+
     //Pagina EditProfile/ProfileResult
     inputText: {
         fontSize: 15,
@@ -231,13 +231,37 @@ export const globalStyles = StyleSheet.create({
         marginBottom: 10,
     },
     rankContainer: {
-        alignItems: 'center',
+        flexDirection: 'row', 
+        alignItems: 'center',   
+        justifyContent: 'center', 
         marginTop: 5,
+        gap: 10,                 
+        width: '100%',           
+    },
+    reputacionText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#444',
+        textAlign: 'center',
+    },
+    badge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    badgeText: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#fff',
+        textTransform: 'uppercase',
     },
     rankText: {
         fontSize: 10,
         fontWeight: 'bold',
     },
+
     skillsSection: {
         flex: 1,
         paddingVertical: 5,
@@ -302,29 +326,29 @@ export const globalStyles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '500',
         color: Colors.textDark,
-    },  
-    rightRequestColumn: { 
+    },
+    rightRequestColumn: {
         flex: 0.35,
         alignItems: 'center',
         justifyContent: 'center',
         paddingLeft: 10,
     },
 
-    tokenLabel: { 
+    tokenLabel: {
         fontSize: 10,
         color: Colors.textMuted,
         marginBottom: 5,
     },
 
-    tokenAmount: { 
+    tokenAmount: {
         fontSize: 24,
         fontWeight: 'bold',
         color: Colors.primary,
     },
 
-    tokenSub: { 
+    tokenSub: {
         fontSize: 10,
-        color: Colors.primary,
+        color: Colors.primaryDark,
         fontWeight: '600',
     },
     buttonContainer: {
@@ -334,8 +358,8 @@ export const globalStyles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     button: {
-        flex: 1, 
-        marginHorizontal: 8, 
+        flex: 1,
+        marginHorizontal: 8,
         padding: 18,
         borderRadius: 12,
         alignItems: 'center',
@@ -347,7 +371,7 @@ export const globalStyles = StyleSheet.create({
     },
     buttonReject: {
         backgroundColor: Colors.primary,
-    },  
+    },
     buttonText: {
         color: Colors.textLight,
         fontSize: 16,
@@ -371,30 +395,30 @@ export const globalStyles = StyleSheet.create({
     },
 
     //Pagina Sala Clases/MailBox(Index)
-    headerTitle: { 
-        fontSize: 24, 
-        fontWeight: 'bold', 
-        padding: 20, 
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        padding: 20,
         color: Colors.textDark,
         textAlign: 'center'
     },
 
     //Pagina Mailbox(Index)/Search(Index)
-    modalOverlay: { 
-        flex: 1, 
+    modalOverlay: {
+        flex: 1,
         backgroundColor: Colors.overlay,
-        justifyContent: 'center', 
+        justifyContent: 'center',
     },
-    modalContent: { 
-        backgroundColor: Colors.whiteBg, 
-        borderRadius: 20, 
-        padding: 20 
+    modalContent: {
+        backgroundColor: Colors.whiteBg,
+        borderRadius: 20,
+        padding: 20
     },
-    modalTitle: { 
-        fontSize: 20, 
-        fontWeight: 'bold' 
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold'
     },
-    
+
     //Pagina Configuration(Index)/EditProfile
     label2: {
         fontSize: 14,
