@@ -6,7 +6,10 @@ import { Colors } from '../../../assets/images/constants/Colors';
 import { globalStyles } from '../../../assets/images/constants/globalStyles';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useCallback } from 'react';
+import { API_BASE_URL } from '../../_utils/api';
 
 import { getToken } from '../../_utils/authStorage';
 import { getSolicitudesRecibidasRequest, getSolicitudesEnviadasRequest, getChatMatchesRequest, type SolicitudItem, type Match } from '../../_utils/api';
@@ -24,23 +27,31 @@ export default function Mailbox() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Cargar datos segun pestaña seleccionada
-  const loadData = async () => {
+  const mensajes: any[] = [];
+
+  useFocusEffect(
+  useCallback(() => {
+    loadSolicitudes();
+  }, [])
+);
+
+  const loadSolicitudes = async () => {
     try {
       setLoading(true);
       const token = await getToken();
+
+      console.log('🔑 Token:', token ? 'existe' : 'NO HAY TOKEN');
+      console.log('🌐 API URL:', API_BASE_URL); 
+
       if (!token) return;
 
-      if (selectedTab === 'request') {
-        const data = await getSolicitudesRecibidasRequest(token);
-        setSolicitudesRecibidas(data);
-      } else if (selectedTab === 'reply') {
-        const data = await getSolicitudesEnviadasRequest(token);
-        setSolicitudesEnviadas(data);
-      } else if (selectedTab === 'message') {
-        const data = await getChatMatchesRequest(token);
-        setMatches(data);
-      }
+      const data = await getSolicitudesRequest(token);
+
+      console.log('Solicitudes recibidas:', data.recibidas);
+      console.log('Solicitudes enviadas:', data.enviadas);
+
+      setSolicitudesRecibidas(data.recibidas ?? []);
+      setSolicitudesEnviadas(data.enviadas ?? []);
     } catch (error) {
       console.error('Error cargando Mailbox:', error);
     } finally {

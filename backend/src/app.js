@@ -9,6 +9,8 @@ const matchRoutes = require('./routes/match.routes');
 const solicitudesRoutes = require('./routes/solicitudes.routes');
 const institutionRoutes = require('./routes/institution.routes');
 const mensajesRoutes = require('./routes/mensajes.routes');
+const sesionesRoutes = require('./routes/sesiones.routes');
+
 
 app.use(cors());
 app.use(express.json());
@@ -28,6 +30,8 @@ app.use('/api/match', matchRoutes);
 //app.use('/api/tokens', tokenRoutes);
 
 app.use('/api/solicitudes', solicitudesRoutes);
+
+app.use('/api/sesiones', sesionesRoutes);
 
 app.use('/api/institutions', institutionRoutes);
 

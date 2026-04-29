@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
-
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, ActivityIndicator } from 'react-native';
 import { Colors } from '../../assets/images/constants/Colors';
 import { globalStyles } from '../../assets/images/constants/globalStyles';
+import { Calendar, LocaleConfig } from 'react-native-calendars';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
+import { getSesionesRequest, type SesionItem } from '../_utils/api';
+import { getToken } from '../_utils/authStorage';
 
-import { Calendar, LocaleConfig } from 'react-native-calendars'; //install
-import { Ionicons } from '@expo/vector-icons'; //install
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; //install
-
-// Configuración Calendario
 LocaleConfig.locales['es'] = {
   monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
   dayNames: ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'],
@@ -19,24 +19,47 @@ LocaleConfig.defaultLocale = 'es';
 export default function Classroom() {
   const insets = useSafeAreaInsets();
   const [selectedDate, setSelectedDate] = useState('');
+  const [sesiones, setSesiones] = useState<SesionItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Ejemplo dias marcados
-  const markedDates = {
-    '2026-04-25': { marked: true, dotColor: '#ff743dff', activeOpacity: 0 },
-    '2026-04-28': { marked: true, dotColor: '#ff743dff', activeOpacity: 0 },
+  useFocusEffect(
+    useCallback(() => {
+      loadSesiones();
+    }, [])
+  );
+
+  const loadSesiones = async () => {
+    try {
+      setLoading(true);
+      const token = await getToken();
+      if (!token) return;
+      const data = await getSesionesRequest(token);
+      setSesiones(data ?? []);
+    } catch (error) {
+      console.error('Error cargando sesiones:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleJoinMeeting = (url) => {
-    if (url) {
-      Linking.openURL(url); // url para abrir google meet
-    }
+  // Marcar días con sesiones en el calendario
+  const markedDates = sesiones.reduce((acc, sesion) => {
+    const fecha = new Date(sesion.fecha_programada).toISOString().split('T')[0];
+    acc[fecha] = { marked: true, dotColor: '#ff743dff', activeOpacity: 0 };
+    return acc;
+  }, {} as Record<string, any>);
+
+  const formatFecha = (fechaStr: string) => {
+    const fecha = new Date(fechaStr);
+    return fecha.toLocaleDateString('es-CL', {
+      day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+    });
   };
 
   return (
     <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
       <Text style={globalStyles.headerTitle}>Mi Agenda</Text>
 
-      {/* Calendario Interactivo */}
       <View style={styles.calendarContainer}>
         <Calendar
           onDayPress={day => setSelectedDate(day.dateString)}
@@ -52,57 +75,53 @@ export default function Classroom() {
         />
       </View>
 
-      {/* Detalle de Sesión */}
       <ScrollView style={styles.detailsContainer}>
         <Text style={styles.sectionTitle}>Próximas Sesiones</Text>
-        
-        {/* Tarjeta de Sesión (BD) */}
-        <View style={styles.sessionCard}>
-          <View style={styles.sessionInfo}>
-            <Text style={styles.skillName}>React Native Avanzado</Text>
-            <Text style={styles.sessionTime}>
-              <Ionicons name="time-outline" size={14} /> 25 de Abril - 18:00 hrs
-            </Text>
-          </View>
 
-          <TouchableOpacity 
-            style={styles.meetButton}
-            onPress={() => handleJoinMeeting('https://meet.google.com/abc-defg-hij')}
-          >
-            <Ionicons name="videocam" size={20} color="#fff" />
-            <Text style={styles.meetButtonText}>Unirse a Meet</Text>
-          </TouchableOpacity>
-        </View>
+        {loading && <ActivityIndicator size="large" color={Colors.primary} />}
+
+        {!loading && sesiones.length === 0 && (
+          <View style={{ alignItems: 'center', marginTop: 30 }}>
+            <Ionicons name="calendar-outline" size={60} color="#ccc" />
+            <Text style={{ color: '#999', marginTop: 10 }}>No tenés sesiones agendadas</Text>
+          </View>
+        )}
+
+        {sesiones.map((sesion) => (
+          <View key={sesion.id} style={styles.sessionCard}>
+            <View style={styles.sessionInfo}>
+              <Text style={styles.skillName}>{sesion.habilidad}</Text>
+              <Text style={styles.sessionTime}>
+                {sesion.solicitante} → {sesion.receptor}
+              </Text>
+              <Text style={styles.sessionTime}>
+                <Ionicons name="time-outline" size={14} /> {formatFecha(sesion.fecha_programada)}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.meetButton}
+              onPress={() => Linking.openURL('https://meet.google.com')}
+            >
+              <Ionicons name="videocam" size={20} color="#fff" />
+              <Text style={styles.meetButtonText}>Meet</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerTitle: { 
-    fontSize: 24, 
-    fontWeight: 'bold', 
-    padding: 20, 
-    color: Colors.textDark,
-    textAlign: 'center' 
+  calendarContainer: {
+    backgroundColor: Colors.whiteBg,
+    marginHorizontal: 15,
+    borderRadius: 15,
+    elevation: 4,
+    paddingBottom: 10
   },
-  calendarContainer: { 
-    backgroundColor: Colors.whiteBg, 
-    marginHorizontal: 15, 
-    borderRadius: 15, 
-    elevation: 4, 
-    paddingBottom: 10 }
-    ,
-  detailsContainer: { 
-    flex: 1, 
-    padding: 20 
-  },
-  sectionTitle: { 
-    fontSize: 18, 
-    fontWeight: '600', 
-    marginBottom: 15, 
-    color: Colors.textMuted
-  },
+  detailsContainer: { flex: 1, padding: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 15, color: Colors.textMuted },
   sessionCard: {
     backgroundColor: Colors.whiteBg,
     borderRadius: 15,
@@ -114,19 +133,9 @@ const styles = StyleSheet.create({
     borderLeftWidth: 5,
     borderLeftColor: Colors.BorderColor
   },
-  sessionInfo: { 
-    flex: 1 
-  },
-  skillName: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    color: Colors.textDark 
-  },
-  sessionTime: { 
-    fontSize: 13, 
-    color: '#888', 
-    marginTop: 5 
-  },
+  sessionInfo: { flex: 1 },
+  skillName: { fontSize: 16, fontWeight: 'bold', color: Colors.textDark },
+  sessionTime: { fontSize: 13, color: '#888', marginTop: 5 },
   meetButton: {
     backgroundColor: '#00796b',
     flexDirection: 'row',
@@ -135,9 +144,5 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center'
   },
-  meetButtonText: { 
-    color: Colors.textLight, 
-    marginLeft: 8, 
-    fontWeight: '600' 
-  }
+  meetButtonText: { color: '#fff', marginLeft: 8, fontWeight: '600' }
 });
