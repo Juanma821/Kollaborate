@@ -1,20 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
+import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal, Alert, ActivityIndicator } from 'react-native';
 
 import { Colors } from '../../../assets/images/constants/Colors';
 import { globalStyles } from '../../../assets/images/constants/globalStyles';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import {
-  aceptarSolicitudRequest,
-  getSolicitudesRequest,
-  rechazarSolicitudRequest,
-  type SolicitudItem,
-} from '../../_utils/api';
 import { getToken } from '../../_utils/authStorage';
+import { getSolicitudesRecibidasRequest, getSolicitudesEnviadasRequest, getChatMatchesRequest, type SolicitudItem, type Match } from '../../_utils/api';
 
 export default function Mailbox() {
   const [selectedTab, setSelectedTab] = useState<'request' | 'reply' | 'message'>('request');
@@ -26,93 +21,59 @@ export default function Mailbox() {
 
   const [solicitudesRecibidas, setSolicitudesRecibidas] = useState<SolicitudItem[]>([]);
   const [solicitudesEnviadas, setSolicitudesEnviadas] = useState<SolicitudItem[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const mensajes: any[] = [];
-
-  useEffect(() => {
-    loadSolicitudes();
-  }, []);
-
-  const loadSolicitudes = async () => {
+  // Cargar datos segun pestaña seleccionada
+  const loadData = async () => {
     try {
       setLoading(true);
       const token = await getToken();
-
       if (!token) return;
 
-      const data = await getSolicitudesRequest(token);
-
-      console.log('Solicitudes recibidas:', data.recibidas);
-      console.log('Solicitudes enviadas:', data.enviadas);
-
-      setSolicitudesRecibidas(data.recibidas);
-      setSolicitudesEnviadas(data.enviadas);
+      if (selectedTab === 'request') {
+        const data = await getSolicitudesRecibidasRequest(token);
+        setSolicitudesRecibidas(data);
+      } else if (selectedTab === 'reply') {
+        const data = await getSolicitudesEnviadasRequest(token);
+        setSolicitudesEnviadas(data);
+      } else if (selectedTab === 'message') {
+        const data = await getChatMatchesRequest(token);
+        setMatches(data);
+      }
     } catch (error) {
-      console.error('Error cargando solicitudes:', error);
+      console.error('Error cargando Mailbox:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const abrirResolucion = (item: SolicitudItem) => {
+  useEffect(() => {
+    loadData();
+  }, [selectedTab]);
+
+  const abrirModalRespuesta = (item: SolicitudItem) => {
     setSelectedRespuesta(item);
     setModalVisible(true);
   };
 
-  const handleAceptar = async (id: number) => {
-    try {
-      const token = await getToken();
-      if (!token) return;
-
-      const result = await aceptarSolicitudRequest(token, id);
-      Alert.alert('Exito', result.message || 'Solicitud aceptada');
-      setModalVisible(false);
-      await loadSolicitudes();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'No se pudo aceptar la solicitud';
-      Alert.alert('Error', message);
-    }
-  };
-
-  const handleRechazar = async (id: number) => {
-    try {
-      const token = await getToken();
-      if (!token) return;
-
-      const result = await rechazarSolicitudRequest(token, id);
-      Alert.alert('Exito', result.message || 'Solicitud rechazada');
-      setModalVisible(false);
-      await loadSolicitudes();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'No se pudo rechazar la solicitud';
-      Alert.alert('Error', message);
-    }
-  };
-
   const estadoTexto = (estadoId: number) => {
-    if (estadoId === 1) return 'Pendiente';
-    if (estadoId === 2) return 'Aceptada';
-    if (estadoId === 3) return 'Rechazada';
-    return 'Desconocido';
+    const estados: Record<number, string> = { 1: 'Pendiente', 2: 'Aceptada', 3: 'Rechazada' };
+    return estados[estadoId] || 'Desconocido';
   };
 
   return (
     <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
+      
+      {/* Pestañas */}
       <View style={styles.selectorContainer}>
         {['request', 'reply', 'message'].map((tab) => (
           <TouchableOpacity
             key={tab}
             style={[globalStyles.selectorButton, selectedTab === tab && globalStyles.selectorButtonActive]}
-            onPress={() => setSelectedTab(tab as 'request' | 'reply' | 'message')}
+            onPress={() => setSelectedTab(tab as any)}
           >
-            <Text
-              style={[
-                globalStyles.selectorText,
-                { fontSize: 12 },
-                selectedTab === tab && globalStyles.selectorTextActive
-              ]}
-            >
+            <Text style={[globalStyles.selectorText, selectedTab === tab && globalStyles.selectorTextActive]}>
               {tab === 'request' ? 'Solicitudes' : tab === 'reply' ? 'Respuestas' : 'Chats'}
             </Text>
           </TouchableOpacity>
@@ -121,145 +82,98 @@ export default function Mailbox() {
 
       <View style={globalStyles.contentSectionB}>
         <Text style={globalStyles.sectionTitle}>
-          {selectedTab === 'request'
-            ? 'Nuevas Solicitudes'
-            : selectedTab === 'reply'
-              ? 'Resolucion de Solicitudes'
-              : 'Conversaciones'}
+          {selectedTab === 'request' ? 'Nuevas Solicitudes' : selectedTab === 'reply' ? 'Mis Peticiones' : 'Mensajes'}
         </Text>
 
         {loading ? (
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 20 }} />
         ) : (
           <ScrollView showsVerticalScrollIndicator={false}>
 
+            {/* Solicitudes Recibidas */}
             {selectedTab === 'request' && solicitudesRecibidas.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 style={styles.listItem}
-                onPress={() => abrirResolucion(item)}
+                onPress={() => router.push({ pathname: '/(tabs)/mailbox/mbnotify', params: { id: item.id } })}
               >
-                <View style={styles.avatarPlaceholder}>
-                  <Ionicons name="person-outline" size={24} color="#666" />
-                </View>
+                <View style={styles.avatarPlaceholder}><Ionicons name="person-outline" size={24} color="#666" /></View>
                 <View style={{ flex: 1, marginLeft: 10 }}>
                   <Text style={styles.itemTitle}>{item.usuario}</Text>
-                  <Text style={styles.itemSub}>{item.habilidad}</Text>
-                  <Text style={styles.itemDate}>{estadoTexto(item.estado_id)}</Text>
+                  <Text style={styles.itemSub}>Quiere aprender: {item.habilidad}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#ddd" />
+                <Ionicons name="chevron-forward" size={20} color="#ccc" />
               </TouchableOpacity>
             ))}
 
+            {/* Notificaciones */}
             {selectedTab === 'reply' && solicitudesEnviadas.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 style={styles.listItem}
-                onPress={() => abrirResolucion(item)}
+                onPress={() => abrirModalRespuesta(item)}
               >
-                <View
-                  style={[
-                    styles.avatarPlaceholder,
-                    {
-                      backgroundColor:
-                        item.estado_id === 2 ? '#e8f5e9'
-                          : item.estado_id === 3 ? '#ffebee'
-                            : '#f5f5f5'
-                    }
-                  ]}
-                >
+                <View style={[styles.avatarPlaceholder, { backgroundColor: item.estado_id === 2 ? '#e8f5e9' : '#f5f5f5' }]}>
                   <Ionicons
-                    name={
-                      item.estado_id === 2
-                        ? 'checkmark-circle'
-                        : item.estado_id === 3
-                          ? 'close-circle'
-                          : 'time-outline'
-                    }
+                    name={item.estado_id === 2 ? 'checkmark-circle' : item.estado_id === 3 ? 'close-circle' : 'time-outline'}
                     size={24}
-                    color={
-                      item.estado_id === 2
-                        ? '#4caf50'
-                        : item.estado_id === 3
-                          ? '#f44336'
-                          : '#999'
-                    }
+                    color={item.estado_id === 2 ? '#4caf50' : item.estado_id === 3 ? '#f44336' : '#999'}
                   />
                 </View>
                 <View style={{ flex: 1, marginLeft: 10 }}>
                   <Text style={styles.itemTitle}>{item.usuario}</Text>
                   <Text style={styles.itemSub}>{item.habilidad}</Text>
-                  <Text style={styles.itemDate}>{estadoTexto(item.estado_id)}</Text>
+                  <Text style={[styles.itemDate, { color: item.estado_id === 2 ? '#4caf50' : '#999' }]}>
+                    {estadoTexto(item.estado_id)}
+                  </Text>
                 </View>
                 <Ionicons name="eye-outline" size={20} color="#ddd" />
               </TouchableOpacity>
             ))}
 
-            {selectedTab === 'message' && mensajes.length === 0 && (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="chatbubbles-outline" size={60} color="#ccc" />
-                <Text style={{ color: '#999', marginTop: 10 }}>Sin conversaciones aun</Text>
-              </View>
-            )}
-
-            {!loading && selectedTab === 'request' && solicitudesRecibidas.length === 0 && (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="mail-open-outline" size={60} color="#ccc" />
-                <Text style={{ color: '#999', marginTop: 10 }}>No tienes solicitudes recibidas</Text>
-              </View>
-            )}
-
-            {!loading && selectedTab === 'reply' && solicitudesEnviadas.length === 0 && (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="send-outline" size={60} color="#ccc" />
-                <Text style={{ color: '#999', marginTop: 10 }}>No has enviado solicitudes</Text>
-              </View>
-            )}
+            {/* Chats */}
+            {selectedTab === 'message' && matches.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.listItem}
+                onPress={() => router.push({ pathname: '/(tabs)/mailbox/mbchat', params: { id: item.id, nombreChat: item.nombreChat } })}
+              >
+                <View style={[styles.avatarPlaceholder, { backgroundColor: Colors.primary + '20' }]}>
+                  <Ionicons name="chatbubble-ellipses-outline" size={24} color={Colors.primary} />
+                </View>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.itemTitle}>{item.nombreChat}</Text>
+                  <Text style={styles.itemSub}>Match por: {item.habilidad}</Text>
+                </View>
+                <View style={styles.onlineBadge} />
+              </TouchableOpacity>
+            ))}
           </ScrollView>
         )}
       </View>
 
-      <Modal visible={modalVisible} transparent animationType="fade">
+      {/* Modal respuesta notificaciones */}
+      <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {selectedTab === 'request' ? 'Resolver solicitud' : 'Detalle de solicitud'}
-            </Text>
-
+            <Text style={styles.modalTitle}>Estado de tu Solicitud</Text>
             {selectedRespuesta && (
-              <>
-                <Text style={styles.modalText}>
-                  Usuario: <Text style={{ fontWeight: 'bold' }}>{selectedRespuesta.usuario}</Text>
-                </Text>
+              <View style={{ marginVertical: 15 }}>
+                <Text style={styles.modalText}>Para: <Text style={{ fontWeight: 'bold' }}>{selectedRespuesta.usuario}</Text></Text>
                 <Text style={styles.modalText}>Habilidad: {selectedRespuesta.habilidad}</Text>
-                <Text style={styles.modalText}>Estado: {estadoTexto(selectedRespuesta.estado_id)}</Text>
-
-                {selectedTab === 'request' && selectedRespuesta.estado_id === 1 ? (
-                  <>
-                    <TouchableOpacity
-                      style={[styles.modalButton, { backgroundColor: '#4caf50' }]}
-                      onPress={() => handleAceptar(selectedRespuesta.id)}
-                    >
-                      <Text style={styles.modalButtonText}>Aceptar</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[styles.modalButton, { backgroundColor: '#f44336' }]}
-                      onPress={() => handleRechazar(selectedRespuesta.id)}
-                    >
-                      <Text style={styles.modalButtonText}>Rechazar</Text>
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <TouchableOpacity
-                    style={[styles.modalButton, { backgroundColor: Colors.colorCard }]}
-                    onPress={() => setModalVisible(false)}
-                  >
-                    <Text style={styles.modalButtonText}>Cerrar</Text>
-                  </TouchableOpacity>
+                <Text style={[styles.modalText, { marginTop: 10, color: selectedRespuesta.estado_id === 2 ? '#4caf50' : '#f44336' }]}>
+                  Resultado: {estadoTexto(selectedRespuesta.estado_id)}
+                </Text>
+                {selectedRespuesta.estado_id === 2 && (
+                  <Text style={{ fontSize: 12, color: '#666', fontStyle: 'italic', marginTop: 5 }}>
+                    ¡Ya puedes encontrar a este usuario en la pestaña de Chats!
+                  </Text>
                 )}
-              </>
+              </View>
             )}
+            <TouchableOpacity style={styles.modalButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalButtonText}>Cerrar</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -267,6 +181,7 @@ export default function Mailbox() {
   );
 }
 
+//Estilos Propios
 const styles = StyleSheet.create({
   selectorContainer: {
     flexDirection: 'row',
@@ -342,5 +257,13 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     fontWeight: 'bold',
     fontSize: 16
+  },
+  onlineBadge: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#4caf50',
+    borderWidth: 2,
+    borderColor: '#fff'
   }
 });
