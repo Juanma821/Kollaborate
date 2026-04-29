@@ -4,13 +4,21 @@ const router = express.Router();
 const { verifyToken } = require('../middlewares/auth.middleware');
 const {
     createSolicitud,
-    getSolicitudes,
+    getSolicitudesRecibidas,
+    getSolicitudesEnviadas,
+    getMatches,
     aceptarSolicitud,
-    rechazarSolicitud
+    rechazarSolicitud,
+    getSolicitudById
 } = require('../controllers/solicitudes.controller');
 
+// Consultas (Notificaciones, Solicitudes, Chats)
+router.get('/recibidas', verifyToken, getSolicitudesRecibidas);
+router.get('/enviadas', verifyToken, getSolicitudesEnviadas);
+router.get('/matches', verifyToken, getMatches);
+
 router.post('/', verifyToken, createSolicitud);
-router.get('/', verifyToken, getSolicitudes);
+router.get('/:id', verifyToken, getSolicitudById);
 router.put('/:id/aceptar', verifyToken, aceptarSolicitud);
 router.put('/:id/rechazar', verifyToken, rechazarSolicitud);
 

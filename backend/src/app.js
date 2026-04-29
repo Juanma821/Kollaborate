@@ -8,6 +8,7 @@ const matchRoutes = require('./routes/match.routes');
 //const tokenRoutes = require('./routes/token.routes');
 const solicitudesRoutes = require('./routes/solicitudes.routes');
 const institutionRoutes = require('./routes/institution.routes');
+const mensajesRoutes = require('./routes/mensajes.routes');
 const sesionesRoutes = require('./routes/sesiones.routes');
 
 
@@ -34,5 +35,6 @@ app.use('/api/sesiones', sesionesRoutes);
 
 app.use('/api/institutions', institutionRoutes);
 
+app.use('/api/mensajes', mensajesRoutes);
 
 module.exports = app;
