@@ -14,24 +14,25 @@ const createSolicitud = async (req, res) => {
     }
 };
 
-// obtener
-const getSolicitudes = async (req, res) => {
-    console.log(' GET /solicitudes llamado por userId:', req.user.id);
+// Obtener solicitudes recibidas (Notificaciones)
+const getSolicitudesRecibidas = async (req, res) => {
     try {
-        const result = await solicitudesService.getSolicitudes(req.user.id);
-        res.json(result);
+        const userId = req.user.id; // El ID viene del token (middleware)
+        const solicitudes = await solicitudesService.getSolicitudes(userId);
+        res.json(solicitudes);
     } catch (error) {
-        res.status(500).json({ error: 'Error obteniendo solicitudes recibidas' });
+        res.status(500).json({ error: 'Error al obtener solicitudes recibidas' });
     }
 };
 
 // Obtener solicitudes ENVIADAS (Notificaciones)
 const getSolicitudesEnviadas = async (req, res) => {
     try {
-        const result = await solicitudesService.getSolicitudesEnviadas(req.user.id);
-        res.json(result);
+        const userId = req.user.id;
+        const solicitudes = await solicitudesService.getSolicitudesEnviadas(userId);
+        res.json(solicitudes);
     } catch (error) {
-        res.status(500).json({ error: 'Error obteniendo solicitudes enviadas' });
+        res.status(500).json({ error: 'Error al obtener solicitudes enviadas' });
     }
 };
 

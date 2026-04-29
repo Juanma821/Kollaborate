@@ -60,50 +60,32 @@ const createSolicitud = async (data) => {
 
 // Obtener solicitudes
 const getSolicitudes = async (userId) => {
-  let connection;
-  try {
-    connection = await db.getConnection();
-
-    const recibidas = await connection.execute(
-      `SELECT s.id, u.nombre AS usuario, h.nombre AS habilidad, s.estado_id 
-       FROM solicitudes s
-       JOIN usuarios u ON u.id = s.solicitante_id
-       JOIN habilidades h ON h.id = s.habilidad_id
-       WHERE s.receptor_id = :id`,
-      { id: userId },
-      { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
-    );
-
-    const enviadas = await connection.execute(
-      `SELECT s.id, u.nombre AS usuario, h.nombre AS habilidad, s.estado_id 
-       FROM solicitudes s
-       JOIN usuarios u ON u.id = s.receptor_id
-       JOIN habilidades h ON h.id = s.habilidad_id
-       WHERE s.solicitante_id = :id`,
-      { id: userId },
-      { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
-    );
-
-    console.log('RAW recibidas:', JSON.stringify(recibidas.rows));
-    console.log('RAW enviadas:', JSON.stringify(enviadas.rows));
-    console.log('userId usado:', userId);
-
-    const mapRow = (row) => ({
-        id: row.ID,
-        usuario: row.USUARIO,
-        habilidad: row.HABILIDAD,
-        estado_id: row.ESTADO_ID,
-        fecha_solicitud: row.FECHA_SOLICITUD,
-    });
-
-    return {
-      recibidas: recibidas.rows.map(mapRow),
-      enviadas: enviadas.rows.map(mapRow),
-    };
-
-  } finally {
-    if (connection) await connection.close();
-  }
+    let connection;
+    try {
+        connection = await db.getConnection();
+        const result = await connection.execute(
+            `SELECT s.id AS "id", 
+                    u.nombre AS "usuario", 
+                    i.nombre AS "institucion", 
+                    h.nombre AS "habilidad", 
+                    s.estado_id AS "estado_id",
+                    u.reputacion_promedio AS "reputacion_valor",
+                    nr.nombre_nivel AS "nivel_nombre",
+                    nr.color_hex AS "nivel_color",
+                    TO_CHAR(s.fecha_propuesta, 'YYYY-MM-DD"T"HH24:MI:SS') AS "fecha"
+             FROM solicitudes s
+             INNER JOIN usuarios u ON s.solicitante_id = u.id
+             INNER JOIN habilidades h ON s.habilidad_id = h.id
+             LEFT JOIN instituciones i ON u.institucion_id = i.id
+             LEFT JOIN niveles_reputacion nr ON u.nivel_id = nr.id 
+             WHERE s.receptor_id = :id AND s.estado_id = 1`,
+            { id: userId },
+            { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
+        );
+        return result.rows;
+    } finally {
+        if (connection) await connection.close();
+    }
 };
 
 // Aceptar solicitud
