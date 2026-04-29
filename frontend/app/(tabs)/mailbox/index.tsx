@@ -5,8 +5,10 @@ import { Colors } from '../../../assets/images/constants/Colors';
 import { globalStyles } from '../../../assets/images/constants/globalStyles';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useCallback } from 'react';
+import { API_BASE_URL } from '../../_utils/api';
 
 import {
   aceptarSolicitudRequest,
@@ -30,14 +32,19 @@ export default function Mailbox() {
 
   const mensajes: any[] = [];
 
-  useEffect(() => {
+  useFocusEffect(
+  useCallback(() => {
     loadSolicitudes();
-  }, []);
+  }, [])
+);
 
   const loadSolicitudes = async () => {
     try {
       setLoading(true);
       const token = await getToken();
+
+      console.log('🔑 Token:', token ? 'existe' : 'NO HAY TOKEN');
+      console.log('🌐 API URL:', API_BASE_URL); 
 
       if (!token) return;
 
@@ -46,8 +53,8 @@ export default function Mailbox() {
       console.log('Solicitudes recibidas:', data.recibidas);
       console.log('Solicitudes enviadas:', data.enviadas);
 
-      setSolicitudesRecibidas(data.recibidas);
-      setSolicitudesEnviadas(data.enviadas);
+      setSolicitudesRecibidas(data.recibidas ?? []);
+      setSolicitudesEnviadas(data.enviadas ?? []);
     } catch (error) {
       console.error('Error cargando solicitudes:', error);
     } finally {

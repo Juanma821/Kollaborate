@@ -17,6 +17,7 @@ const createSolicitud = async (req, res) => {
 
 // obtener
 const getSolicitudes = async (req, res) => {
+    console.log(' GET /solicitudes llamado por userId:', req.user.id);
     try {
         const result = await solicitudesService.getSolicitudes(req.user.id);
         res.json(result);

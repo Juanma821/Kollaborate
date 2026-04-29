@@ -63,25 +63,50 @@ const createSolicitud = async (data) => {
 
 //  Obtener solicitudes (recibidas)
 const getSolicitudes = async (userId) => {
-    let connection;
+  let connection;
+  try {
+    connection = await db.getConnection();
 
-    try {
-        connection = await db.getConnection();
+    const recibidas = await connection.execute(
+      `SELECT s.id, u.nombre AS usuario, h.nombre AS habilidad, s.estado_id 
+       FROM solicitudes s
+       JOIN usuarios u ON u.id = s.solicitante_id
+       JOIN habilidades h ON h.id = s.habilidad_id
+       WHERE s.receptor_id = :id`,
+      { id: userId },
+      { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
+    );
 
-        const result = await connection.execute(
-            `SELECT s.id, u.nombre, h.nombre AS habilidad, s.estado_id
-             FROM solicitudes s
-             JOIN usuarios u ON u.id = s.solicitante_id
-             JOIN habilidades h ON h.id = s.habilidad_id
-             WHERE s.receptor_id = :id`,
-            { id: userId }
-        );
+    const enviadas = await connection.execute(
+      `SELECT s.id, u.nombre AS usuario, h.nombre AS habilidad, s.estado_id 
+       FROM solicitudes s
+       JOIN usuarios u ON u.id = s.receptor_id
+       JOIN habilidades h ON h.id = s.habilidad_id
+       WHERE s.solicitante_id = :id`,
+      { id: userId },
+      { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
+    );
 
-        return result.rows;
+    console.log('RAW recibidas:', JSON.stringify(recibidas.rows));
+    console.log('RAW enviadas:', JSON.stringify(enviadas.rows));
+    console.log('userId usado:', userId);
 
-    } finally {
-        if (connection) await connection.close();
-    }
+    const mapRow = (row) => ({
+        id: row.ID,
+        usuario: row.USUARIO,
+        habilidad: row.HABILIDAD,
+        estado_id: row.ESTADO_ID,
+        fecha_solicitud: row.FECHA_SOLICITUD,
+    });
+
+    return {
+      recibidas: recibidas.rows.map(mapRow),
+      enviadas: enviadas.rows.map(mapRow),
+    };
+
+  } finally {
+    if (connection) await connection.close();
+  }
 };
 
 const aceptarSolicitud = async (id, userId) => {

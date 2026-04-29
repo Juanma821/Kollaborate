@@ -251,4 +251,19 @@ export const rechazarSolicitudRequest = (token: string, solicitudId: number) =>
     token,
   });
 
+export type SesionItem = {
+  id: number;
+  fecha_programada: string;
+  estado_id: number;
+  habilidad: string;
+  solicitante: string;
+  receptor: string;
+};
 
+export const getSesionesRequest = (token: string) =>
+  request<SesionItem[]>('/sesiones', {
+    method: 'GET',
+    token,
+  });
+
+  
