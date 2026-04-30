@@ -10,7 +10,7 @@ const solicitudesRoutes = require('./routes/solicitudes.routes');
 const institutionRoutes = require('./routes/institution.routes');
 const mensajesRoutes = require('./routes/mensajes.routes');
 const sesionesRoutes = require('./routes/sesiones.routes');
-
+const statisticsRoutes = require('./routes/statistics.routes');
 
 app.use(cors());
 app.use(express.json());
@@ -36,5 +36,7 @@ app.use('/api/sesiones', sesionesRoutes);
 app.use('/api/institutions', institutionRoutes);
 
 app.use('/api/mensajes', mensajesRoutes);
+
+app.use('/api/statistics', statisticsRoutes);
 
 module.exports = app;
