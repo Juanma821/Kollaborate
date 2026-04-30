@@ -74,7 +74,7 @@ export default function Classroom() {
 
   const markedDates = sesiones.reduce((acc, sesion) => {
     const fecha = new Date(sesion.fecha_programada).toISOString().split('T')[0];
-    acc[fecha] = { marked: true, dotColor: '#ff743dff', activeOpacity: 0 };
+    acc[fecha] = { marked: true, dotColor: Colors.TextprimaryDark, activeOpacity: 0 };
     return acc;
   }, {} as Record<string, any>);
 
@@ -94,26 +94,26 @@ export default function Classroom() {
 
   const estadoColor = (estadoId: number) => {
     if (estadoId === 4) return Colors.BorderColor;
-    if (estadoId === 5) return '#4caf50';
-    if (estadoId === 6) return '#f44336';
-    return '#ccc';
+    if (estadoId === 5) return Colors.success;
+    if (estadoId === 6) return Colors.error;
+    return Colors.textMuted;
   };
 
   return (
     <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
-      <Text style={globalStyles.headerTitle}>Mi Agenda</Text>
+      <Text style={[globalStyles.headerTitle, {color: Colors.TextprimaryDark}]}>Mi Agenda</Text>
 
       <View style={styles.calendarContainer}>
         <Calendar
           onDayPress={day => setSelectedDate(day.dateString)}
           markedDates={{
             ...markedDates,
-            [selectedDate]: { selected: true, disableTouchEvent: true, selectedColor: '#ff743dff' }
+            [selectedDate]: { selected: true, disableTouchEvent: true, selectedColor: Colors.primary }
           }}
           theme={{
-            todayTextColor: '#ff743dff',
-            arrowColor: '#ff743dff',
-            dotColor: '#ff743dff',
+            todayTextColor: Colors.Textprimary,
+            arrowColor: Colors.primary,
+            dotColor: Colors.primary,
           }}
         />
       </View>
@@ -125,8 +125,8 @@ export default function Classroom() {
 
         {!loading && sesiones.length === 0 && (
           <View style={{ alignItems: 'center', marginTop: 30 }}>
-            <Ionicons name="calendar-outline" size={60} color="#ccc" />
-            <Text style={{ color: '#999', marginTop: 10 }}>No tenés sesiones agendadas</Text>
+            <Ionicons name="calendar-outline" size={60} color={Colors.textMuted} />
+            <Text style={{ color: Colors.textLabel, marginTop: 10 }}>No tienes sesiones agendadas</Text>
           </View>
         )}
 
@@ -146,15 +146,15 @@ export default function Classroom() {
                 {estadoTexto(sesion.estado_id)}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#ccc" />
+            <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
           </TouchableOpacity>
         ))}
       </ScrollView>
 
       <Modal visible={modalVisible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
+        <View style={[globalStyles.modalOverlay, { alignItems: 'center'}]}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Sesión</Text>
+            <Text style={[globalStyles.modalTitle,{marginBottom: 15}]}>Sesión</Text>
 
             {selectedSesion && (
               <>
@@ -170,15 +170,15 @@ export default function Classroom() {
                 {selectedSesion.estado_id === 4 && (
                   <>
                     <TouchableOpacity
-                      style={[styles.modalButton, { backgroundColor: '#00796b' }]}
+                      style={[globalStyles.modalButton, { backgroundColor: '#00796b', flexDirection: 'row', justifyContent: 'center'  }]}
                       onPress={() => Linking.openURL('https://meet.google.com')}
                     >
                       <Ionicons name="videocam" size={18} color="#fff" />
-                      <Text style={styles.modalButtonText}>  Unirse a Meet</Text>
+                      <Text style={globalStyles.modalButtonText}>  Unirse a Meet</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.modalButton, { backgroundColor: '#4caf50' }]}
+                      style={[globalStyles.modalButton, { backgroundColor: Colors.positiveBg,  flexDirection: 'row', justifyContent: 'center'  }]}
                       onPress={() => Alert.alert(
                         'Finalizar sesión',
                         'Se transferirán 10 tokens al receptor. ¿Confirmás?',
@@ -188,11 +188,11 @@ export default function Classroom() {
                         ]
                       )}
                     >
-                      <Text style={styles.modalButtonText}>✓ Finalizar sesión (-10 tokens)</Text>
+                      <Text style={globalStyles.modalButtonText}>✓ Finalizar sesión (-10 tokens)</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.modalButton, { backgroundColor: '#f44336' }]}
+                      style={[globalStyles.modalButton, { backgroundColor: Colors.negativeBg,  flexDirection: 'row', justifyContent: 'center'  }]}
                       onPress={() => Alert.alert(
                         'Cancelar sesión',
                         '¿Estás seguro? No se transferirán tokens.',
@@ -202,16 +202,16 @@ export default function Classroom() {
                         ]
                       )}
                     >
-                      <Text style={styles.modalButtonText}>✕ Cancelar sesión</Text>
+                      <Text style={globalStyles.modalButtonText}>✕ Cancelar sesión</Text>
                     </TouchableOpacity>
                   </>
                 )}
 
                 <TouchableOpacity
-                  style={[styles.modalButton, { backgroundColor: '#999', marginTop: 5 }]}
+                  style={[globalStyles.modalButton, { backgroundColor: Colors.grayBg, marginTop: 5, flexDirection: 'row', justifyContent: 'center' }]}
                   onPress={() => setModalVisible(false)}
                 >
-                  <Text style={styles.modalButtonText}>Cerrar</Text>
+                  <Text style={globalStyles.modalButtonText}>Cerrar</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -230,10 +230,18 @@ const styles = StyleSheet.create({
     elevation: 4,
     paddingBottom: 10
   },
-  detailsContainer: { flex: 1, padding: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 15, color: Colors.textMuted },
+  detailsContainer: { 
+    flex: 1, 
+    padding: 20 
+  },
+  sectionTitle: { 
+    fontSize: 18, 
+    fontWeight: '600', 
+    marginBottom: 15, 
+    color: Colors.TextprimaryDark 
+  },
   sessionCard: {
-    backgroundColor: Colors.whiteBg,
+    backgroundColor: Colors.card,
     borderRadius: 15,
     padding: 20,
     flexDirection: 'row',
@@ -244,14 +252,20 @@ const styles = StyleSheet.create({
     borderLeftColor: Colors.BorderColor
   },
   sessionInfo: { flex: 1 },
-  skillName: { fontSize: 16, fontWeight: 'bold', color: Colors.textDark },
-  sessionTime: { fontSize: 13, color: '#888', marginTop: 5 },
-  estadoBadge: { fontSize: 12, fontWeight: '600', marginTop: 4 },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center'
+  skillName: { 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    color: Colors.textDark 
+  },
+  sessionTime: { 
+    fontSize: 13, 
+    color: Colors.textDark, 
+    marginTop: 5 
+  },
+  estadoBadge: { 
+    fontSize: 12, 
+    fontWeight: '600', 
+    marginTop: 4 
   },
   modalContent: {
     width: '85%',
@@ -260,16 +274,9 @@ const styles = StyleSheet.create({
     padding: 25,
     alignItems: 'center'
   },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15 },
-  modalText: { fontSize: 15, marginBottom: 8, textAlign: 'center' },
-  modalButton: {
-    width: '100%',
-    padding: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 10,
-    flexDirection: 'row',
-    justifyContent: 'center'
+  modalText: { 
+    fontSize: 15, 
+    marginBottom: 8, 
+    textAlign: 'center' 
   },
-  modalButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 15 }
 });

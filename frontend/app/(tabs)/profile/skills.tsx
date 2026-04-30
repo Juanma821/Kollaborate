@@ -44,13 +44,17 @@ export default function Skills() {
     fetchCategorias();
   }, []);
 
-  const fetchCategorias = async () => {
+const fetchCategorias = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/skills/by-categoria`);
+      if (!response.ok) throw new Error('Fallo en API Categorias');
+      
       const data = await response.json();
-      setCategorias(data);
+      
+      setCategorias(data && typeof data === 'object' ? data : {});
     } catch (error) {
       console.error('Error cargando categorías:', error);
+      setCategorias({});
     }
   };
 
@@ -63,11 +67,22 @@ export default function Skills() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      if (!response.ok) {
+        setOfrezco([]);
+        setBusco([]);
+        return;
+      }
+
       const data = await response.json();
-      setOfrezco(data.filter((s: Skill) => s.tipo === 'Ofrece'));
-      setBusco(data.filter((s: Skill) => s.tipo === 'Busca'));
+    
+      const data_to_filter = Array.isArray(data) ? data : [];
+
+      setOfrezco(data_to_filter.filter((s: Skill) => s.tipo === 'Ofrece'));
+      setBusco(data_to_filter.filter((s: Skill) => s.tipo === 'Busca'));
     } catch (error) {
       console.error('Error en fetchUserSkills:', error);
+      setOfrezco([]);
+      setBusco([]);
     }
   };
 
@@ -206,7 +221,6 @@ export default function Skills() {
 
         {isActive && (
           <View style={styles.panel}>
-            {/* Chips de categorías */}
             {!categoriaSeleccionada && inputValue.trim().length <= 1 && (
               <>
                 <Text style={styles.panelLabel}>Categorías</Text>
@@ -224,7 +238,6 @@ export default function Skills() {
               </>
             )}
 
-            {/* Breadcrumb categoría seleccionada */}
             {categoriaSeleccionada && (
               <TouchableOpacity
                 style={styles.breadcrumb}
@@ -235,7 +248,6 @@ export default function Skills() {
               </TouchableOpacity>
             )}
 
-            {/* Lista de sugerencias */}
             {isLoading ? (
               <Text style={styles.loadingText}>Buscando...</Text>
             ) : suggestions.length > 0 ? (

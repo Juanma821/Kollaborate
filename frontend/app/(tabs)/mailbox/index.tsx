@@ -172,8 +172,8 @@ export default function Mailbox() {
                 )}
               </View>
             )}
-            <TouchableOpacity style={styles.modalButton} onPress={() => setModalVisible(false)}>
-              <Text style={styles.modalButtonText}>Cerrar</Text>
+            <TouchableOpacity style={globalStyles.modalButton} onPress={() => setModalVisible(false)}>
+              <Text style={globalStyles.modalButtonText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -246,18 +246,6 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 16,
     marginBottom: 10
-  },
-  modalButton: {
-    width: '100%',
-    padding: 15,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 10
-  },
-  modalButtonText: {
-    color: Colors.textLight,
-    fontWeight: 'bold',
-    fontSize: 16
   },
   onlineBadge: {
     width: 12,
