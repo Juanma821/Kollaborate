@@ -38,7 +38,8 @@ export const Colors = {
 
   // Textos
   textLight: '#ffffff',     // Texto sobre fondo oscuro, botones naranjos
-  textMedium: '#cccccc',    // Subtitulo pantallas Auth 
+  textMedium: '#cccccc',
+  textMediumLight: '#dddddd',    // Subtitulo pantallas Auth 
   textDark: '#333333',      // Texto (Form)
   textMuted: '#666666',     // Texto secundario (itemSub)
   textPlaceholder: '#aaaaaa', // Texto titulo placeholder (Formularios)
