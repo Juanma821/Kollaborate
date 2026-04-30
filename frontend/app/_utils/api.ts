@@ -182,6 +182,7 @@ export type MatchItem = {
   apellido: string;
   alias: string;
   habilidades: string[];
+  categorias: string[];
 };
 
 export type MatchProfile = {
@@ -196,8 +197,8 @@ export type MatchProfile = {
   busco: { id: number; nombre: string }[];
 };
 
-export const getMatchesRequest = (token: string) =>
-  request<MatchItem[]>('/match', {
+export const getMatchesRequest = (token: string, categoria?: string) =>
+  request<MatchItem[]>(`/match${categoria ? `?categoria=${encodeURIComponent(categoria)}` : ''}`, {
     method: 'GET',
     token,
   });
@@ -335,6 +336,18 @@ export type SesionItem = {
 export const getSesionesRequest = (token: string) =>
   request<SesionItem[]>('/sesiones', {
     method: 'GET',
+    token,
+  });
+
+export const finalizarSesionRequest = (token: string, sesionId: number) =>
+  request<{ message: string }>(`/sesiones/${sesionId}/finalizar`, {
+    method: 'PUT',
+    token,
+  });
+
+export const cancelarSesionRequest = (token: string, sesionId: number) =>
+  request<{ message: string }>(`/sesiones/${sesionId}/cancelar`, {
+    method: 'PUT',
     token,
   });
 

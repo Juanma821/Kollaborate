@@ -10,7 +10,22 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { getMatchesRequest, type MatchItem } from '../../_utils/api';
 import { getToken } from '../../_utils/authStorage';
 
-const SearchBar = ({ searchQuery, onSearchChange, onSearch }: any) => {
+const CATEGORIAS = [
+  'Todas',
+  'Matemáticas',
+  'Ciencias',
+  'Idiomas',
+  'Programación',
+  'Diseño',
+  'Negocios',
+  'Académico',
+  'Frontend',
+];
+
+const normalizar = (str: string) =>
+  str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+const SearchBar = ({ searchQuery, onSearchChange, onSearch, onCategoriaChange, categoriaActiva }: any) => {
   const [showFilters, setShowFilters] = useState(false);
 
   return (
@@ -19,33 +34,65 @@ const SearchBar = ({ searchQuery, onSearchChange, onSearch }: any) => {
         <Ionicons name="search" size={20} color="#999" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Que quieres aprender?"
+          placeholder="¿Qué quieres aprender?"
           value={searchQuery}
           onChangeText={onSearchChange}
           onSubmitEditing={() => onSearch(searchQuery)}
         />
         <TouchableOpacity onPress={() => setShowFilters(true)}>
-          <Ionicons name="options-outline" size={22} color="#ff743dff" />
+          <Ionicons
+            name="options-outline"
+            size={22}
+            color={categoriaActiva !== 'Todas' ? Colors.primary : '#ff743dff'}
+          />
         </TouchableOpacity>
       </View>
+
+      {categoriaActiva !== 'Todas' && (
+        <TouchableOpacity
+          style={styles.categoriaChip}
+          onPress={() => onCategoriaChange('Todas')}
+        >
+          <Text style={styles.categoriaChipText}>{categoriaActiva}</Text>
+          <Ionicons name="close-circle" size={16} color="#fff" />
+        </TouchableOpacity>
+      )}
 
       <Modal visible={showFilters} transparent animationType="fade">
         <View style={[globalStyles.modalOverlay, { padding: 20 }]}>
           <View style={globalStyles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={globalStyles.modalTitle}>Filtros</Text>
+              <Text style={globalStyles.modalTitle}>Filtrar por categoría</Text>
               <TouchableOpacity onPress={() => setShowFilters(false)}>
                 <Ionicons name="close" size={24} color="#333" />
               </TouchableOpacity>
             </View>
 
-            <Text style={{ color: '#666' }}>
-              Esta version usa matches basados en habilidades ya registradas.
-            </Text>
-
-            <TouchableOpacity style={styles.applyBtn} onPress={() => setShowFilters(false)}>
-              <Text style={styles.applyBtnText}>Cerrar</Text>
-            </TouchableOpacity>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {CATEGORIAS.map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.categoriaItem,
+                    categoriaActiva === cat && styles.categoriaItemActiva
+                  ]}
+                  onPress={() => {
+                    onCategoriaChange(cat);
+                    setShowFilters(false);
+                  }}
+                >
+                  <Text style={[
+                    styles.categoriaItemText,
+                    categoriaActiva === cat && styles.categoriaItemTextActiva
+                  ]}>
+                    {cat}
+                  </Text>
+                  {categoriaActiva === cat && (
+                    <Ionicons name="checkmark" size={18} color="#fff" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -92,27 +139,29 @@ export default function Search() {
   const [tutores, setTutores] = useState<MatchItem[]>([]);
   const [allTutores, setAllTutores] = useState<MatchItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [categoriaActiva, setCategoriaActiva] = useState('Todas');
 
   useEffect(() => {
-    const loadMatches = async () => {
-      try {
-        setLoading(true);
-
-        const token = await getToken();
-        if (!token) return;
-
-        const data = await getMatchesRequest(token);
-        setAllTutores(data);
-        setTutores(data);
-      } catch (error) {
-        console.error('Error cargando matches:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadMatches();
   }, []);
+
+  const loadMatches = async (categoria?: string) => {
+    try {
+      setLoading(true);
+      const token = await getToken();
+      if (!token) return;
+      const data = await getMatchesRequest(
+        token,
+        categoria && categoria !== 'Todas' ? categoria : undefined
+      );
+      setAllTutores(data);
+      setTutores(data);
+    } catch (error) {
+      console.error('Error cargando matches:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -124,11 +173,17 @@ export default function Search() {
 
     const filtered = allTutores.filter((t) =>
       t.habilidades.some((h) =>
-        h.toLowerCase().includes(query.toLowerCase())
+        normalizar(h).includes(normalizar(query))
       )
     );
 
     setTutores(filtered);
+  };
+
+  const handleCategoriaChange = (categoria: string) => {
+    setCategoriaActiva(categoria);
+    setSearchQuery('');
+    loadMatches(categoria);
   };
 
   return (
@@ -138,8 +193,10 @@ export default function Search() {
       <View style={{ paddingHorizontal: 20 }}>
         <SearchBar
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={(text: string) => handleSearch(text)}
           onSearch={handleSearch}
+          onCategoriaChange={handleCategoriaChange}
+          categoriaActiva={categoriaActiva}
         />
       </View>
 
@@ -148,7 +205,11 @@ export default function Search() {
       ) : (
         <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Text style={styles.sectionLabel}>
-            {searchQuery ? `Resultados para "${searchQuery}"` : 'Matches sugeridos'}
+            {searchQuery
+              ? `Resultados para "${searchQuery}"`
+              : categoriaActiva !== 'Todas'
+                ? `Categoría: ${categoriaActiva}`
+                : 'Matches sugeridos'}
           </Text>
 
           {tutores.map((tutor) => (
@@ -170,7 +231,7 @@ export default function Search() {
             <View style={styles.emptyContainer}>
               <Ionicons name="search-outline" size={60} color="#ccc" />
               <Text style={{ color: '#999', marginTop: 10 }}>
-                No hay resultados para esa habilidad
+                No hay resultados
               </Text>
             </View>
           )}
@@ -212,17 +273,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20
-  },
-  applyBtn: {
-    backgroundColor: Colors.colorCard,
-    padding: 15,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 25
-  },
-  applyBtnText: {
-    color: Colors.textLight,
-    fontWeight: 'bold'
   },
   tutorCard: {
     backgroundColor: Colors.whiteBg,
@@ -274,5 +324,43 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     marginTop: 40
-  }
+  },
+  categoriaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: 8,
+    gap: 6,
+  },
+  categoriaChipText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  categoriaItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    marginBottom: 8,
+    backgroundColor: '#f5f5f5',
+  },
+  categoriaItemActiva: {
+    backgroundColor: Colors.primary,
+  },
+  categoriaItemText: {
+    fontSize: 15,
+    color: '#333',
+    fontWeight: '500',
+  },
+  categoriaItemTextActiva: {
+    color: '#fff',
+    fontWeight: '700',
+  },
 });

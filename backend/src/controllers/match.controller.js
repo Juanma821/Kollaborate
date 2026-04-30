@@ -2,9 +2,9 @@ const matchService = require('../services/match.service');
 
 const getMatches = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const matches = await matchService.getMatches(userId);
-        res.json(matches);
+        const categoria = req.query.categoria || null;
+        const result = await matchService.getMatches(req.user.id, categoria);
+        res.json(result);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error obteniendo matches' });

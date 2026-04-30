@@ -1,33 +1,38 @@
 const db = require('../db');
 
-const getMatches = async (userId) => {
+const getMatches = async (userId, categoria = null) => {
     let connection;
-
     try {
         connection = await db.getConnection();
 
-        const result = await connection.execute(
-            `SELECT 
+        const query = `
+            SELECT 
                 u.id,
                 u.nombre,
                 u.apellido,
                 u.alias,
-                LISTAGG(h.nombre, ', ') WITHIN GROUP (ORDER BY h.nombre) AS habilidades
-             FROM usuario_habilidades uh_busca
-             JOIN usuario_habilidades uh_ofrece 
+                LISTAGG(h.nombre, ', ') WITHIN GROUP (ORDER BY h.nombre) AS habilidades,
+                LISTAGG(h.categoria, ', ') WITHIN GROUP (ORDER BY h.nombre) AS categorias
+            FROM usuario_habilidades uh_busca
+            JOIN usuario_habilidades uh_ofrece 
                 ON uh_busca.habilidad_id = uh_ofrece.habilidad_id
-             JOIN habilidades h 
+            JOIN habilidades h 
                 ON uh_ofrece.habilidad_id = h.id
-             JOIN usuarios u 
+            JOIN usuarios u 
                 ON uh_ofrece.usuario_id = u.id
-             WHERE uh_busca.usuario_id = :userId
-             AND uh_busca.tipo = 'Busca'
-             AND uh_ofrece.tipo = 'Ofrece'
-             AND uh_ofrece.usuario_id != :userId
-             GROUP BY u.id, u.nombre, u.apellido, u.alias`,
-            { userId },
-            { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
-        );
+            WHERE uh_busca.usuario_id = :userId
+            AND uh_busca.tipo = 'Busca'
+            AND uh_ofrece.tipo = 'Ofrece'
+            AND uh_ofrece.usuario_id != :userId
+            ${categoria ? `AND LOWER(h.categoria) = LOWER(:categoria)` : ''}
+            GROUP BY u.id, u.nombre, u.apellido, u.alias
+        `;
+
+        const binds = categoria ? { userId, categoria } : { userId };
+
+        const result = await connection.execute(query, binds, {
+            outFormat: db.oracledb.OUT_FORMAT_OBJECT
+        });
 
         return result.rows.map(row => ({
             id: row.ID,
@@ -36,9 +41,11 @@ const getMatches = async (userId) => {
             alias: row.ALIAS,
             habilidades: row.HABILIDADES
                 ? row.HABILIDADES.split(',').map(h => h.trim())
+                : [],
+            categorias: row.CATEGORIAS
+                ? row.CATEGORIAS.split(',').map(c => c.trim())
                 : []
         }));
-
     } finally {
         if (connection) await connection.close();
     }

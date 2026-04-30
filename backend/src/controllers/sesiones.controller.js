@@ -10,4 +10,28 @@ const getSesiones = async (req, res) => {
   }
 };
 
-module.exports = { getSesiones };
+const finalizarSesion = async (req, res) => {
+  try {
+    const result = await sesionesService.finalizarSesion(
+      Number(req.params.id),
+      req.user.id
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+const cancelarSesion = async (req, res) => {
+  try {
+    const result = await sesionesService.cancelarSesion(
+      Number(req.params.id),
+      req.user.id
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+module.exports = { getSesiones, finalizarSesion, cancelarSesion };

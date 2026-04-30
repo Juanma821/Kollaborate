@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middlewares/auth.middleware');
-
 const {
     getSkills,
     createSkill,
@@ -10,24 +9,20 @@ const {
     addSkillOffer,
     addSkillWant,
     searchSkills,
-    getUserSkills,  
-    deleteUserSkill  
+    getUserSkills,
+    deleteUserSkill,
+    getSkillsByCategoria  
 } = require('../controllers/skills.controller');
 
 router.get('/search', searchSkills);
+router.get('/by-categoria', getSkillsByCategoria); 
+router.get('/user', verifyToken, getUserSkills);
 router.get('/', getSkills);
 
-// Cargar tags
-router.get('/user', verifyToken, getUserSkills); 
-
-// Añadir habilidades (Pagina habilidades)
 router.post('/:id/offer', verifyToken, addSkillOffer);
 router.post('/:id/want', verifyToken, addSkillWant);
+router.delete('/:id/:type', verifyToken, deleteUserSkill);
 
-// Borrar habilidad (Tag)
-router.delete('/:id/:type', verifyToken, deleteUserSkill); 
-
-// CRUD Protegido
 router.post('/', verifyToken, createSkill);
 router.put('/:id', verifyToken, updateSkill);
 router.delete('/:id', verifyToken, deleteSkill);

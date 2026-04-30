@@ -251,12 +251,16 @@ const searchSkills = async (termino) => {
     let connection;
     try {
         connection = await db.getConnection();
-        // Buscar coinciencias
+
         const result = await connection.execute(
             `SELECT id, nombre FROM habilidades 
-             WHERE LOWER(nombre) LIKE LOWER(:query)
-             FETCH FIRST 5 ROWS ONLY`,
-            { query: `%${termino}%` }
+             WHERE REGEXP_LIKE(
+               TRANSLATE(LOWER(nombre), 'áéíóúàèìòùâêîôûãõ', 'aeiouaeiouaeiouao'),
+               TRANSLATE(LOWER(:query), 'áéíóúàèìòùâêîôûãõ', 'aeiouaeiouaeiouao'),
+               'i'
+             )
+             FETCH FIRST 8 ROWS ONLY`,
+            { query: `.*${termino}.*` }
         );
 
         return result.rows.map(row => ({
@@ -325,6 +329,34 @@ const getUserSkills = async (usuarioId) => {
     }
 };
 
+const getSkillsByCategoria = async () => {
+    let connection;
+    try {
+        connection = await db.getConnection();
+
+        const result = await connection.execute(
+            `SELECT id, nombre, categoria FROM habilidades 
+             ORDER BY categoria, nombre`,
+            {},
+            { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
+        );
+
+        // Agrupar por categoría
+        const agrupadas = {};
+        result.rows.forEach(row => {
+            const cat = row.CATEGORIA || 'Otras';
+            if (!agrupadas[cat]) agrupadas[cat] = [];
+            agrupadas[cat].push({ id: row.ID, nombre: row.NOMBRE });
+        });
+
+        return agrupadas;
+
+    } finally {
+        if (connection) await connection.close();
+    }
+};
+
+
 module.exports = {
     getSkills,
     createSkill,
@@ -333,6 +365,7 @@ module.exports = {
     addSkillToUser,
     removeSkillFromUser,
     getUserSkills,
-    searchSkills
+    searchSkills,
+    getSkillsByCategoria
 
 };

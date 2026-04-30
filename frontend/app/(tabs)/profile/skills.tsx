@@ -1,14 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  ScrollView, KeyboardAvoidingView, Platform, Alert,
 } from 'react-native';
 
 import { Colors } from '../../../assets/images/constants/Colors';
@@ -25,6 +18,11 @@ interface Skill {
   tipo?: 'Ofrece' | 'Busca';
 }
 
+type CategoriaMap = Record<string, Skill[]>;
+
+const normalizar = (str: string) =>
+  str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
 export default function Skills() {
   const insets = useSafeAreaInsets();
 
@@ -33,40 +31,39 @@ export default function Skills() {
 
   const [inputOfrezco, setInputOfrezco] = useState('');
   const [inputBusco, setInputBusco] = useState('');
-  const [suggestions, setSuggestions] = useState<Skill[]>([]);
+
   const [activeInput, setActiveInput] = useState<'ofrezco' | 'busco' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [categorias, setCategorias] = useState<CategoriaMap>({});
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Skill[]>([]);
+
   useEffect(() => {
     fetchUserSkills();
+    fetchCategorias();
   }, []);
+
+  const fetchCategorias = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/skills/by-categoria`);
+      const data = await response.json();
+      setCategorias(data);
+    } catch (error) {
+      console.error('Error cargando categorías:', error);
+    }
+  };
 
   const fetchUserSkills = async () => {
     try {
       const token = await getToken();
+      if (!token) return;
 
-      if (!token) {
-        Alert.alert('Error', 'No hay sesion activa.');
-        return;
-      }
-
-      const url = `${API_BASE_URL}/skills/user`;
-
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch(`${API_BASE_URL}/skills/user`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      const text = await response.text();
-
-      if (!response.ok) {
-        console.log('Error en fetchUserSkills:', text);
-        return;
-      }
-
-      const data = JSON.parse(text);
-
+      const data = await response.json();
       setOfrezco(data.filter((s: Skill) => s.tipo === 'Ofrece'));
       setBusco(data.filter((s: Skill) => s.tipo === 'Busca'));
     } catch (error) {
@@ -74,72 +71,61 @@ export default function Skills() {
     }
   };
 
-  const handleSearch = async (text: string, type: 'ofrezco' | 'busco') => {
-    if (type === 'ofrezco') {
-      setInputOfrezco(text);
-    } else {
-      setInputBusco(text);
-    }
+  const handleInputChange = (text: string, type: 'ofrezco' | 'busco') => {
+    if (type === 'ofrezco') setInputOfrezco(text);
+    else setInputBusco(text);
 
     setActiveInput(type);
+    setCategoriaSeleccionada(null);
 
     if (text.trim().length > 1) {
-      setIsLoading(true);
-      try {
-        const url = `${API_BASE_URL}/skills/search?q=${encodeURIComponent(text)}`;
-
-        const response = await fetch(url);
-        const resText = await response.text();
-
-        if (!response.ok) {
-          console.log('Error en busqueda:', resText);
-          setSuggestions([]);
-          return;
-        }
-
-        const data = JSON.parse(resText);
-        setSuggestions(data);
-      } catch (error) {
-        console.error('Error detallado:', error);
-      } finally {
-        setIsLoading(false);
-      }
+      buscarPorTexto(text);
     } else {
       setSuggestions([]);
     }
   };
 
-  const addSkillToDB = async (skill: Skill, type: 'ofrezco' | 'busco') => {
-    const listaActual = type === 'ofrezco' ? ofrezco : busco;
-    const yaExiste = listaActual.find((s) => s.id === skill.id);
-
-    if (yaExiste) {
-      Alert.alert(
-        'Habilidad duplicada',
-        `Ya has anadido "${skill.nombre}" a tu lista de habilidades que ${
-          type === 'ofrezco' ? 'ofreces' : 'buscas'
-        }.`
+  const buscarPorTexto = async (texto: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/skills/search?q=${encodeURIComponent(texto)}`
       );
+      const data = await response.json();
+      setSuggestions(data);
+    } catch (error) {
+      console.error('Error buscando:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      setSuggestions([]);
-      setInputOfrezco('');
-      setInputBusco('');
-      setActiveInput(null);
+  const seleccionarCategoria = (cat: string) => {
+    setCategoriaSeleccionada(cat);
+    setSuggestions(categorias[cat] || []);
+  };
+
+  const handleFocus = (type: 'ofrezco' | 'busco') => {
+    setActiveInput(type);
+    setCategoriaSeleccionada(null);
+    setSuggestions([]);
+    if (type === 'ofrezco') setInputOfrezco('');
+    else setInputBusco('');
+  };
+
+  const addSkill = async (skill: Skill, type: 'ofrezco' | 'busco') => {
+    const listaActual = type === 'ofrezco' ? ofrezco : busco;
+    if (listaActual.find((s) => s.id === skill.id)) {
+      Alert.alert('Ya agregada', `"${skill.nombre}" ya está en tu lista.`);
       return;
     }
 
     try {
       const token = await getToken();
-
-      if (!token) {
-        Alert.alert('Error', 'No hay sesion activa.');
-        return;
-      }
+      if (!token) return;
 
       const accion = type === 'ofrezco' ? 'offer' : 'want';
-      const url = `${API_BASE_URL}/skills/${skill.id}/${accion}`;
-
-      const response = await fetch(url, {
+      const response = await fetch(`${API_BASE_URL}/skills/${skill.id}/${accion}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,8 +133,7 @@ export default function Skills() {
         },
       });
 
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : null;
+      const data = await response.json();
 
       if (response.ok) {
         if (type === 'ofrezco') {
@@ -158,61 +143,40 @@ export default function Skills() {
           setBusco([...busco, { ...skill, tipo: 'Busca' }]);
           setInputBusco('');
         }
-
         setSuggestions([]);
+        setCategoriaSeleccionada(null);
         setActiveInput(null);
       } else {
-        Alert.alert('Aviso', data?.error || 'No se pudo anadir');
+        Alert.alert('Aviso', data?.error || 'No se pudo añadir');
       }
     } catch (error) {
-      console.error('Error al guardar:', error);
-      Alert.alert('Error', 'Error de conexion al guardar');
+      Alert.alert('Error', 'Error de conexión al guardar');
     }
   };
 
   const removeSkill = async (skillId: number, type: 'ofrezco' | 'busco') => {
     try {
       const token = await getToken();
-
-      if (!token) {
-        Alert.alert('Error', 'No hay sesion activa.');
-        return;
-      }
+      if (!token) return;
 
       const accion = type === 'ofrezco' ? 'offer' : 'want';
-      const url = `${API_BASE_URL}/skills/${skillId}/${accion}`;
-
-      const response = await fetch(url, {
+      const response = await fetch(`${API_BASE_URL}/skills/${skillId}/${accion}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : null;
-
       if (response.ok) {
-        if (type === 'ofrezco') {
-          setOfrezco(ofrezco.filter((s) => s.id !== skillId));
-        } else {
-          setBusco(busco.filter((s) => s.id !== skillId));
-        }
+        if (type === 'ofrezco') setOfrezco(ofrezco.filter((s) => s.id !== skillId));
+        else setBusco(busco.filter((s) => s.id !== skillId));
       } else {
-        Alert.alert('Error', data?.error || 'No se pudo eliminar');
+        Alert.alert('Error', 'No se pudo eliminar');
       }
-    } catch (error) {
-      Alert.alert('Error', 'Error de conexion al eliminar');
+    } catch {
+      Alert.alert('Error', 'Error de conexión al eliminar');
     }
   };
 
-  const SkillTag = ({
-    skill,
-    type,
-  }: {
-    skill: Skill;
-    type: 'ofrezco' | 'busco';
-  }) => (
+  const SkillTag = ({ skill, type }: { skill: Skill; type: 'ofrezco' | 'busco' }) => (
     <View style={styles.tag}>
       <Text style={styles.tagText}>{skill.nombre}</Text>
       <TouchableOpacity onPress={() => removeSkill(skill.id, type)}>
@@ -220,6 +184,87 @@ export default function Skills() {
       </TouchableOpacity>
     </View>
   );
+
+  const renderPanel = (type: 'ofrezco' | 'busco') => {
+    const inputValue = type === 'ofrezco' ? inputOfrezco : inputBusco;
+    const isActive = activeInput === type;
+    const lista = type === 'ofrezco' ? ofrezco : busco;
+
+    return (
+      <View style={[styles.section, { zIndex: isActive ? 10 : 1 }]}>
+        <Text style={styles.sectionTitle}>
+          {type === 'ofrezco' ? 'Habilidades que brindo' : 'Habilidades que busco'}
+        </Text>
+
+        <TextInput
+          style={[globalStyles.input, { padding: 12 }]}
+          placeholder="Toca para buscar o escribe..."
+          value={inputValue}
+          onFocus={() => handleFocus(type)}
+          onChangeText={(text) => handleInputChange(text, type)}
+        />
+
+        {isActive && (
+          <View style={styles.panel}>
+            {/* Chips de categorías */}
+            {!categoriaSeleccionada && inputValue.trim().length <= 1 && (
+              <>
+                <Text style={styles.panelLabel}>Categorías</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriasRow}>
+                  {Object.keys(categorias).map((cat) => (
+                    <TouchableOpacity
+                      key={cat}
+                      style={styles.categoriaChip}
+                      onPress={() => seleccionarCategoria(cat)}
+                    >
+                      <Text style={styles.categoriaChipText}>{cat}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            )}
+
+            {/* Breadcrumb categoría seleccionada */}
+            {categoriaSeleccionada && (
+              <TouchableOpacity
+                style={styles.breadcrumb}
+                onPress={() => { setCategoriaSeleccionada(null); setSuggestions([]); }}
+              >
+                <Ionicons name="arrow-back" size={14} color={Colors.primary} />
+                <Text style={styles.breadcrumbText}>{categoriaSeleccionada}</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Lista de sugerencias */}
+            {isLoading ? (
+              <Text style={styles.loadingText}>Buscando...</Text>
+            ) : suggestions.length > 0 ? (
+              <ScrollView style={styles.suggestionsContainer} nestedScrollEnabled>
+                {suggestions.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={styles.suggestionItem}
+                    onPress={() => addSkill(item, type)}
+                  >
+                    <Text style={styles.suggestionText}>{item.nombre}</Text>
+                    <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            ) : inputValue.trim().length > 1 ? (
+              <Text style={styles.loadingText}>Sin resultados</Text>
+            ) : null}
+          </View>
+        )}
+
+        <View style={styles.tagContainer}>
+          {lista.map((skill) => (
+            <SkillTag key={skill.id} skill={skill} type={type} />
+          ))}
+        </View>
+      </View>
+    );
+  };
 
   return (
     <KeyboardAvoidingView
@@ -230,87 +275,9 @@ export default function Skills() {
         contentContainerStyle={[styles.container, { paddingTop: insets.top + 20 }]}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.section, { zIndex: activeInput === 'ofrezco' ? 10 : 1 }]}>
-          <Text style={styles.sectionTitle}>Habilidades que brindo</Text>
-          <View style={styles.inputRow}>
-            <TextInput
-              style={[globalStyles.input, { flex: 1, padding: 12 }]}
-              placeholder="Escribe para buscar..."
-              value={inputOfrezco}
-              onChangeText={(text) => handleSearch(text, 'ofrezco')}
-            />
-          </View>
-
-          {activeInput === 'ofrezco' && (
-            <View>
-              {isLoading ? (
-                <Text style={styles.loadingText}>Buscando...</Text>
-              ) : suggestions.length > 0 ? (
-                <View style={styles.suggestionsContainer}>
-                  {suggestions.map((item) => (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={styles.suggestionItem}
-                      onPress={() => addSkillToDB(item, 'ofrezco')}
-                    >
-                      <Text style={styles.suggestionText}>{item.nombre}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ) : inputOfrezco.trim().length > 1 ? (
-                <Text style={styles.loadingText}>Sin resultados</Text>
-              ) : null}
-            </View>
-          )}
-
-          <View style={styles.tagContainer}>
-            {ofrezco.map((skill) => (
-              <SkillTag key={skill.id} skill={skill} type="ofrezco" />
-            ))}
-          </View>
-        </View>
-
+        {renderPanel('ofrezco')}
         <View style={styles.divider} />
-
-        <View style={[styles.section, { zIndex: activeInput === 'busco' ? 10 : 1 }]}>
-          <Text style={styles.sectionTitle}>Habilidades que busco</Text>
-          <View style={styles.inputRow}>
-            <TextInput
-              style={[globalStyles.input, { flex: 1, padding: 12 }]}
-              placeholder="Escribe para buscar..."
-              value={inputBusco}
-              onChangeText={(text) => handleSearch(text, 'busco')}
-            />
-          </View>
-
-          {activeInput === 'busco' && (
-            <View>
-              {isLoading ? (
-                <Text style={styles.loadingText}>Buscando...</Text>
-              ) : suggestions.length > 0 ? (
-                <View style={styles.suggestionsContainer}>
-                  {suggestions.map((item) => (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={styles.suggestionItem}
-                      onPress={() => addSkillToDB(item, 'busco')}
-                    >
-                      <Text style={styles.suggestionText}>{item.nombre}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ) : inputBusco.trim().length > 1 ? (
-                <Text style={styles.loadingText}>Sin resultados</Text>
-              ) : null}
-            </View>
-          )}
-
-          <View style={styles.tagContainer}>
-            {busco.map((skill) => (
-              <SkillTag key={skill.id} skill={skill} type="busco" />
-            ))}
-          </View>
-        </View>
+        {renderPanel('busco')}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -331,42 +298,75 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginBottom: 10,
   },
-  inputRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 15,
-  },
-  suggestionsContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    elevation: 5,
+  panel: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    borderWidth: 1,
-    borderColor: '#eee',
+  },
+  panelLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textMuted,
+    marginBottom: 8,
+  },
+  categoriasRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  categoriaChip: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  categoriaChipText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  breadcrumb: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 4,
+  },
+  breadcrumbText: {
+    color: Colors.primary,
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  suggestionsContainer: {
     maxHeight: 200,
-    marginBottom: 15,
   },
   suggestionItem: {
-    padding: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
   suggestionText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#333',
   },
   loadingText: {
     color: Colors.textMuted,
-    marginBottom: 15,
     fontSize: 13,
+    padding: 8,
   },
   tagContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+    marginTop: 10,
   },
   tag: {
     flexDirection: 'row',

@@ -183,6 +183,15 @@ const getUserSkills = async (req, res) => {
     }
 };
 
+const getSkillsByCategoria = async (req, res) => {
+    try {
+        const result = await skillsService.getSkillsByCategoria();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 
 module.exports = {
     getSkills,
@@ -193,5 +202,6 @@ module.exports = {
     addSkillWant,
     searchSkills,
     getUserSkills,
-    deleteUserSkill
+    deleteUserSkill,
+    getSkillsByCategoria
 };
