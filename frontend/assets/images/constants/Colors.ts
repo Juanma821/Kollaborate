@@ -16,6 +16,7 @@ export const Colors = {
   iconAppBg: '#131313',     
   iconProfileBg: '#eeeeee',
   whiteBg: '#ffffff',
+  grayBg: '#999999',
   positiveBg: '#4caf50',
   negativeBg: '#f44336',
   confirmBg: '#4c63af',
@@ -32,7 +33,7 @@ export const Colors = {
   //Botones 
   buttonClasic: '#ff743dff',
   buttonAccept: '#4caf50',
-  buttonReject: '#f44336',
+  buttonReject: '#f44336', //
 
 
   // Textos

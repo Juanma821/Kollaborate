@@ -425,4 +425,18 @@ export const globalStyles = StyleSheet.create({
         fontWeight: '600',
         color: Colors.textMuted,
     },
+
+    //Modal
+    modalButton: {
+        width: '100%',
+        padding: 15,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginTop: 10
+    },
+    modalButtonText: {
+        color: Colors.textLight,
+        fontWeight: 'bold',
+        fontSize: 16
+    },
 });
