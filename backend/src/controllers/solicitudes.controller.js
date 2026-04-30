@@ -1,12 +1,15 @@
 const solicitudesService = require('../services/solicitudes.service');
 
-// Crear solicitud
 const createSolicitud = async (req, res) => {
     try {
         const result = await solicitudesService.createSolicitud({
             solicitante_id: req.user.id,
             receptor_id: req.body.receptor_id,
-            habilidad_id: req.body.habilidad_id
+            habilidad_id: req.body.habilidad_id,
+            modalidad: req.body.modalidad,
+            tokens_recompensa: req.body.tokens_recompensa,
+            nivel: req.body.nivel,
+            fecha_propuesta: req.body.fecha_propuesta
         });
         res.json(result);
     } catch (error) {
@@ -14,29 +17,24 @@ const createSolicitud = async (req, res) => {
     }
 };
 
-// Obtener solicitudes recibidas (Notificaciones)
 const getSolicitudesRecibidas = async (req, res) => {
     try {
-        const userId = req.user.id; // El ID viene del token (middleware)
-        const solicitudes = await solicitudesService.getSolicitudes(userId);
+        const solicitudes = await solicitudesService.getSolicitudes(req.user.id);
         res.json(solicitudes);
     } catch (error) {
         res.status(500).json({ error: 'Error al obtener solicitudes recibidas' });
     }
 };
 
-// Obtener solicitudes ENVIADAS (Notificaciones)
 const getSolicitudesEnviadas = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const solicitudes = await solicitudesService.getSolicitudesEnviadas(userId);
+        const solicitudes = await solicitudesService.getSolicitudesEnviadas(req.user.id);
         res.json(solicitudes);
     } catch (error) {
         res.status(500).json({ error: 'Error al obtener solicitudes enviadas' });
     }
 };
 
-// Obtener MATCHES/CHATS activos (Chats)
 const getMatches = async (req, res) => {
     try {
         const result = await solicitudesService.getMatches(req.user.id);
@@ -46,20 +44,16 @@ const getMatches = async (req, res) => {
     }
 };
 
-// Obtener detalle de solicitud por ID
 const getSolicitudById = async (req, res) => {
     try {
         const result = await solicitudesService.getSolicitudById(Number(req.params.id));
-        if (!result) {
-            return res.status(404).json({ error: 'Solicitud no encontrada' });
-        }
+        if (!result) return res.status(404).json({ error: 'Solicitud no encontrada' });
         res.json(result);
     } catch (error) {
         res.status(500).json({ error: 'Error obteniendo el detalle' });
     }
 };
 
-// Aceptar
 const aceptarSolicitud = async (req, res) => {
     try {
         const result = await solicitudesService.aceptarSolicitud(
@@ -72,7 +66,6 @@ const aceptarSolicitud = async (req, res) => {
     }
 };
 
-// Rechazar
 const rechazarSolicitud = async (req, res) => {
     try {
         const result = await solicitudesService.rechazarSolicitud(
@@ -81,7 +74,7 @@ const rechazarSolicitud = async (req, res) => {
         );
         res.json(result);
     } catch (error) {
-        res.status(500).json({ error: `Error rechazando solicitud: ${error.message}` });
+        res.status(400).json({ error: error.message });
     }
 };
 

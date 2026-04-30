@@ -222,14 +222,16 @@ export const createSolicitudRequest = (
     body: payload,
   });
 
-  export type SolicitudItem = {
+export interface SolicitudItem {
   id: number;
   usuario: string;
   habilidad: string;
   estado_id: number;
-  fecha: string;
-};
-
+  fecha: string; 
+  institucion?: string;
+  nivel_nombre?: string;
+  nivel_color?: string;
+}
 export type SolicitudesResponse = {
   recibidas: SolicitudItem[];
   enviadas: SolicitudItem[];
@@ -252,7 +254,7 @@ export const getSolicitudesEnviadasRequest = (token: string) =>
 
 //Chats
 export const getChatMatchesRequest = async (token: string): Promise<Match[]> => {
-    const response = await fetch(`${API_BASE_URL}/solicitudes/matches`, { // o tu ruta de matches
+    const response = await fetch(`${API_BASE_URL}/solicitudes/matches`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,

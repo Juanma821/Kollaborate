@@ -1,35 +1,26 @@
 const db = require('../db');
 
-//  Crear solicitud
+// Crear solicitud
 const createSolicitud = async (data) => {
     let connection;
     try {
         connection = await db.getConnection();
 
-        // Validar receptor
         const user = await connection.execute(
             `SELECT id FROM usuarios WHERE id = :id`,
             { id: data.receptor_id }
         );
 
-        if (user.rows.length === 0) {
-            throw new Error('Usuario receptor no existe');
-        }
+        if (user.rows.length === 0) throw new Error('Usuario receptor no existe');
+        if (data.solicitante_id === data.receptor_id) throw new Error('No puedes enviarte solicitud a ti mismo');
 
-        if (data.solicitante_id === data.receptor_id) {
-            throw new Error('No puedes enviarte solicitud a ti mismo');
-        }
-
-        // Evitar duplicados
         const existing = await connection.execute(
             `SELECT id FROM solicitudes 
              WHERE solicitante_id = :s AND receptor_id = :r AND estado_id = 1`,
             { s: data.solicitante_id, r: data.receptor_id }
         );
 
-        if (existing.rows.length > 0) {
-            throw new Error('Ya existe una solicitud pendiente');
-        }
+        if (existing.rows.length > 0) throw new Error('Ya existe una solicitud pendiente');
 
         const result = await connection.execute(
             `INSERT INTO solicitudes (
@@ -42,9 +33,9 @@ const createSolicitud = async (data) => {
                 s: data.solicitante_id,
                 r: data.receptor_id,
                 h: data.habilidad_id,
-                m: data.modalidad,
-                t: data.tokens_recompensa,
-                n: data.nivel,
+                m: data.modalidad || 'Presencial',
+                t: data.tokens_recompensa || 0,
+                n: data.nivel || 'Básico',
                 f: data.fecha_propuesta,
                 id: { dir: db.oracledb.BIND_OUT, type: db.oracledb.NUMBER }
             }
@@ -52,13 +43,12 @@ const createSolicitud = async (data) => {
 
         await connection.commit();
         return { id: result.outBinds.id[0], message: 'Solicitud enviada' };
-
     } finally {
         if (connection) await connection.close();
     }
 };
 
-// Obtener solicitudes
+// Obtener solicitudes recibidas (Mailbox)
 const getSolicitudes = async (userId) => {
     let connection;
     try {
@@ -93,9 +83,10 @@ const aceptarSolicitud = async (id, userId) => {
     let connection;
     try {
         connection = await db.getConnection();
-
         const result = await connection.execute(
-            `SELECT receptor_id, estado_id, fecha_propuesta
+            `SELECT receptor_id AS "receptor_id", 
+                    estado_id AS "estado_id", 
+                    fecha_propuesta AS "fecha_propuesta"
              FROM solicitudes WHERE id = :id`,
             { id },
             { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
@@ -104,30 +95,27 @@ const aceptarSolicitud = async (id, userId) => {
         if (result.rows.length === 0) throw new Error('Solicitud no existe');
         const s = result.rows[0];
 
-        if (s.RECEPTOR_ID !== userId) throw new Error('No autorizado');
-        if (s.ESTADO_ID !== 1) throw new Error('La solicitud ya fue procesada');
+        if (s.receptor_id !== userId) throw new Error('No autorizado');
+        if (s.estado_id !== 1) throw new Error('La solicitud ya fue procesada');
 
-        // Actualizar
         await connection.execute(
             `UPDATE solicitudes SET estado_id = 2 WHERE id = :id`,
             { id }
         );
 
-        // Insertar
         const resSesion = await connection.execute(
             `INSERT INTO sesiones (solicitud_id, fecha_programada, estado_id) 
              VALUES (:solicitud, :fecha, 4)
              RETURNING id INTO :new_id`,
             {
                 solicitud: id,
-                fecha: s.FECHA_PROPUESTA,
+                fecha: s.fecha_propuesta,
                 new_id: { type: db.oracledb.NUMBER, dir: db.oracledb.BIND_OUT }
             }
         );
 
         await connection.commit();
         return { message: 'Match creado', sesionId: resSesion.outBinds.new_id[0] };
-
     } catch (error) {
         if (connection) await connection.rollback();
         throw error;
@@ -142,12 +130,14 @@ const rechazarSolicitud = async (id, userId) => {
     try {
         connection = await db.getConnection();
         const result = await connection.execute(
-            `SELECT estado_id FROM solicitudes WHERE id = :id AND receptor_id = :userId`,
-            { id, userId }
+            `SELECT estado_id AS "estado_id" FROM solicitudes 
+             WHERE id = :id AND receptor_id = :userId`,
+            { id, userId },
+            { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
         );
 
         if (result.rows.length === 0) throw new Error('No encontrada o no autorizada');
-        if (result.rows[0].ESTADO_ID !== 1) throw new Error('Ya procesada');
+        if (result.rows[0].estado_id !== 1) throw new Error('Ya procesada');
 
         await connection.execute(
             `UPDATE solicitudes SET estado_id = 3 WHERE id = :id`,
@@ -187,13 +177,13 @@ const getSolicitudesEnviadas = async (userId) => {
     }
 };
 
-// Obtener matches (sesiones activas)
+// Obtener matches
 const getMatches = async (userId) => {
     let connection;
     try {
         connection = await db.getConnection();
         const result = await connection.execute(
-            `SELECT ses.id AS "id",  -- IMPORTANTE: Traemos el ID de la SESIÓN
+            `SELECT ses.id AS "id", 
                     h.nombre AS "habilidad",
                     CASE 
                         WHEN sol.solicitante_id = :id THEN u_rec.nombre 
