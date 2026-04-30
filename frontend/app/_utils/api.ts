@@ -324,6 +324,8 @@ export const enviarMensajeRequest = async (token: string, sesionId: number, cont
     return await response.json();
 };
 
+
+  //Sesiones
 export type SesionItem = {
   id: number;
   fecha_programada: string;
@@ -351,4 +353,27 @@ export const cancelarSesionRequest = (token: string, sesionId: number) =>
     token,
   });
 
+  // Estadísticas
+export type UserStatistics = {
+  resumen: {
+    reputacion: number;
+    tokens: number;
+    rango: string;
+    rango_color: string;
+  };
+  balance: {
+    aprendizaje: number;
+    ensenanza: number;
+  };
+  historial: Array<{
+    label: string;
+    valor: number;
+  }>;
+};
+
+export const getStatisticsRequest = (token: string) =>
+  request<UserStatistics>('/statistics', {
+    method: 'GET',
+    token,
+  });
   

@@ -1,46 +1,91 @@
-import { StyleSheet, Text, View, ScrollView, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import { PieChart, LineChart } from "react-native-chart-kit";
 import { Colors } from '../../../assets/images/constants/Colors';
 import { globalStyles } from '../../../assets/images/constants/globalStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getToken } from '../../_utils/authStorage';
+import { getStatisticsRequest, type UserStatistics } from '../../_utils/api';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function Statistics() {
   const insets = useSafeAreaInsets();
+  const [stats, setStats] = useState<UserStatistics | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Datos de ejemplo
-  const dataPie = [
-    { name: "Aprendiz", population: 12, color: Colors.primary, legendFontColor: "#7F7F7F", legendFontSize: 12 },
-    { name: "Mentor", population: 8, color: "#4CAF50", legendFontColor: "#7F7F7F", legendFontSize: 12 },
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      setLoading(true);
+      const token = await getToken();
+      if (token) {
+        const data = await getStatisticsRequest(token);
+        setStats(data);
+      }
+    } catch (error) {
+      console.error("Error cargando estadísticas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[globalStyles.containerApp, { justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  // Preparar datos para el gráfico de torta
+  const pieData = [
+    {
+      name: "Aprendiz",
+      population: stats?.balance.aprendizaje || 0,
+      color: Colors.primary,
+      legendFontColor: "#7F7F7F",
+      legendFontSize: 12
+    },
+    {
+      name: "Mentor",
+      population: stats?.balance.ensenanza || 0,
+      color: "#4CAF50",
+      legendFontColor: "#7F7F7F",
+      legendFontSize: 12
+    }
   ];
+
+  const lineData = {
+    labels: stats?.historial.map(h => h.label) || ["-"],
+    datasets: [{
+      data: stats?.historial.map(h => h.valor) || [0]
+    }]
+  };
 
   return (
     <ScrollView contentContainerStyle={[globalStyles.scrollContainer, { paddingTop: insets.top + 20 }]}>
-      
-      <Text style={styles.estadisticasLabel}>Mi Resumen</Text>
-      
-      {/* Tarjeta */}
+
+      <Text style={styles.estadisticasLabel}>Resumen General</Text>
+
+      {/* Tarjeta*/}
       <View style={styles.estadisticasContainer}>
-        <View style={styles.row}>
-            <Text style={styles.estadisticasAmount}>⭐ Reputación:</Text>
-            <Text style={styles.dataValue}>4.5</Text>
-        </View>
-        <View style={styles.row}>
-            <Text style={styles.estadisticasAmount}>🪙 Tokens:</Text>
-            <Text style={styles.dataValue}>120</Text>
-        </View>
-        <View style={styles.row}>
-            <Text style={styles.estadisticasAmount}>🏆 Rango:</Text>
-            <Text style={[styles.dataValue, {color: Colors.primary}]}>Plata</Text>
-        </View>
+        <Text style={styles.estadisticasAmount}>⭐ Reputación: {stats?.resumen.reputacion.toFixed(1) || '0.0'}</Text>
+        <Text style={styles.estadisticasAmount}>🪙 Tokens Actuales: {stats?.resumen.tokens || '0'}</Text>
+        <Text style={[styles.estadisticasAmount, { color: stats?.resumen.rango_color || Colors.textDark }]}>
+          🏆 Rango: {stats?.resumen.rango || 'Sin Rango'}
+        </Text>
       </View>
 
-      {/* Gráfico 1*/}
+      {/* Grafico 1 */}
       <View style={globalStyles.statisticsCard}>
         <Text style={styles.balanceLabel}>Balance de Actividad</Text>
         <PieChart
-          data={dataPie}
+          data={pieData}
           width={screenWidth - 60}
           height={200}
           chartConfig={chartConfig}
@@ -51,32 +96,42 @@ export default function Statistics() {
         />
       </View>
 
-      {/* Gráfico 2 */}
+      {/* Grafico 2 */}
       <View style={globalStyles.statisticsCard}>
-        <Text style={styles.balanceLabel}>Evolución de Tokens</Text>
-        <LineChart
-          data={{
-            labels: ["Ene", "Feb", "Mar", "Abr"],
-            datasets: [{ data: [50, 70, 40, 120] }]
-          }}
-          width={screenWidth - 60}
-          height={220}
-          chartConfig={chartConfig}
-          bezier
-          style={{ marginVertical: 8, borderRadius: 16 }}
-        />
-      </View>
+        <Text style={styles.balanceLabel}>Flujo de Tokens</Text>
 
+        {stats?.historial && stats.historial.length > 0 ? (
+          <LineChart
+            data={{
+              labels: stats.historial.map(h => h.label),
+              datasets: [{ data: stats.historial.map(h => h.valor) }]
+            }}
+            width={screenWidth - 60}
+            height={220}
+            chartConfig={chartConfig}
+            bezier
+            style={{ marginVertical: 8, borderRadius: 16 }}
+          />
+        ) : (
+          <View style={{ height: 150, justifyContent: 'center', alignItems: 'center' }}>
+            <Ionicons name="stats-chart-outline" size={40} color="#ccc" />
+            <Text style={{ color: '#999', marginTop: 10 }}>Sin movimientos recientes de tokens</Text>
+          </View>
+        )}
+      </View>
     </ScrollView>
   );
 }
 
 const chartConfig = {
-  backgroundGradientFrom: "#fff",
-  backgroundGradientTo: "#fff",
+  backgroundColor: "#ffffff",
+  backgroundGradientFrom: "#ffffff",
+  backgroundGradientTo: "#ffffff",
+  decimalPlaces: 0,
   color: (opacity = 1) => `rgba(106, 76, 147, ${opacity})`,
   labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-  strokeWidth: 2, 
+  style: { borderRadius: 16 },
+  propsForDots: { r: "6", strokeWidth: "2", stroke: Colors.primary }
 };
 
 const styles = StyleSheet.create({

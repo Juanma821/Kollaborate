@@ -4,8 +4,6 @@ const getUserStatistics = async (userId) => {
     let connection;
     try {
         connection = await db.getConnection();
-
-        // 1. Resumen: Reputación, Tokens y Rango (Nivel)
         const resumen = await connection.execute(
             `SELECT u.reputacion_promedio AS "reputacion", 
                     u.saldo_tokens AS "tokens", 
@@ -17,8 +15,6 @@ const getUserStatistics = async (userId) => {
             { userId },
             { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
         );
-
-        // 2. Balance: Aprendizaje (como solicitante) vs Enseñanza (como receptor)
         const balance = await connection.execute(
             `SELECT 
                 (SELECT COUNT(*) FROM SOLICITUDES WHERE solicitante_id = :userId AND estado_id = 2) AS "aprendizaje",
@@ -27,9 +23,6 @@ const getUserStatistics = async (userId) => {
             { userId },
             { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
         );
-
-        // 3. Historial de Tokens: Movimientos reales de la tabla TRANSACCIONES
-        // Obtenemos los últimos 7 días de actividad
         const historial = await connection.execute(
             `SELECT TO_CHAR(fecha, 'DD/MM') AS "label", 
                     monto AS "valor"
