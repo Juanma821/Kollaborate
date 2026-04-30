@@ -214,6 +214,10 @@ export const createSolicitudRequest = (
   payload: {
     receptor_id: number;
     habilidad_id: number;
+    modalidad: 'Presencial' | 'Online';
+    nivel: 'Básico' | 'Intermedio' | 'Avanzado' | 'Experto';
+    fecha_propuesta: string;
+    tokens_recompensa: number;
   }
 ) =>
   request<{ id: number; message: string }>('/solicitudes', {
