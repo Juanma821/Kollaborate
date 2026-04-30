@@ -52,6 +52,7 @@ export const Colors = {
   borderLight: '#f0f0f0',
   borderDefault: '#eeeeee',
   borderDark: '#e0e0e0',
+  borderDarked: '#272727',
   BorderColor: '#ff743dff',
   shadow: '#000000',
 };

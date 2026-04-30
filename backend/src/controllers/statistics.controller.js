@@ -2,7 +2,7 @@ const statsService = require('../services/statistics.service');
 
 const getStatistics = async (req, res) => {
     try {
-        const userId = req.user.id; // Extraído del token JWT
+        const userId = req.user.id;
         const stats = await statsService.getUserStatistics(userId);
         res.json(stats);
     } catch (error) {

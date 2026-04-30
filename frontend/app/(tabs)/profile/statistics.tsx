@@ -42,20 +42,20 @@ export default function Statistics() {
     );
   }
 
-  // Preparar datos para el gráfico de torta
+  // Datos Gráficos redondo
   const pieData = [
     {
       name: "Aprendiz",
       population: stats?.balance.aprendizaje || 0,
       color: Colors.primary,
-      legendFontColor: "#7F7F7F",
+      legendFontColor: Colors.textDark,
       legendFontSize: 12
     },
     {
       name: "Mentor",
       population: stats?.balance.ensenanza || 0,
-      color: "#4CAF50",
-      legendFontColor: "#7F7F7F",
+      color: Colors.confirmBg,
+      legendFontColor: Colors.textDark,
       legendFontSize: 12
     }
   ];
@@ -68,9 +68,9 @@ export default function Statistics() {
   };
 
   return (
-    <ScrollView contentContainerStyle={[globalStyles.scrollContainer, { paddingTop: insets.top + 20 }]}>
+    <ScrollView contentContainerStyle={[globalStyles.scrollContainer, { paddingTop: insets.top + 5 }]}>
 
-      <Text style={styles.estadisticasLabel}>Resumen General</Text>
+      <Text style={styles.title}>Resumen</Text>
 
       {/* Tarjeta*/}
       <View style={styles.estadisticasContainer}>
@@ -81,9 +81,11 @@ export default function Statistics() {
         </Text>
       </View>
 
+      <View style={styles.divider} />
+
+      <Text style={styles.title}>Balance de Actividad</Text>
       {/* Grafico 1 */}
       <View style={globalStyles.statisticsCard}>
-        <Text style={styles.balanceLabel}>Balance de Actividad</Text>
         <PieChart
           data={pieData}
           width={screenWidth - 60}
@@ -96,9 +98,11 @@ export default function Statistics() {
         />
       </View>
 
+      <View style={styles.divider} />
+
+      <Text style={styles.title}>Tendencia de Tokens</Text>
       {/* Grafico 2 */}
       <View style={globalStyles.statisticsCard}>
-        <Text style={styles.balanceLabel}>Flujo de Tokens</Text>
 
         {stats?.historial && stats.historial.length > 0 ? (
           <LineChart
@@ -114,8 +118,8 @@ export default function Statistics() {
           />
         ) : (
           <View style={{ height: 150, justifyContent: 'center', alignItems: 'center' }}>
-            <Ionicons name="stats-chart-outline" size={40} color="#ccc" />
-            <Text style={{ color: '#999', marginTop: 10 }}>Sin movimientos recientes de tokens</Text>
+            <Ionicons name="stats-chart-outline" size={40} color={Colors.textDark} />
+            <Text style={{ color: Colors.textDark, marginTop: 10 }}>Sin movimientos recientes de tokens</Text>
           </View>
         )}
       </View>
@@ -124,9 +128,9 @@ export default function Statistics() {
 }
 
 const chartConfig = {
-  backgroundColor: "#ffffff",
-  backgroundGradientFrom: "#ffffff",
-  backgroundGradientTo: "#ffffff",
+  backgroundColor: Colors.whiteBg,
+  backgroundGradientFrom: Colors.whiteBg,
+  backgroundGradientTo: Colors.whiteBg,
   decimalPlaces: 0,
   color: (opacity = 1) => `rgba(106, 76, 147, ${opacity})`,
   labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
@@ -136,8 +140,8 @@ const chartConfig = {
 
 const styles = StyleSheet.create({
   estadisticasContainer: {
-    padding: 20,
-    backgroundColor: Colors.colorCard || '#fff',
+    padding:20,
+    backgroundColor: Colors.card || '#fff',
     marginHorizontal: 10,
     marginBottom: 20,
     borderRadius: 15,
@@ -148,24 +152,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.borderLight,
     paddingBottom: 5,
-  },
-  estadisticasLabel: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: Colors.textDark,
-    marginBottom: 15,
-    textAlign: 'center',
   },
   estadisticasAmount: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.textDark,
+    fontWeight: 'bold',
   },
   dataValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.textDark,
   },
   balanceLabel: {
     fontSize: 18,
@@ -173,4 +171,18 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginBottom: 10,
   },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.borderDarked,
+    marginVertical: 5,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    padding: 10,
+    color: Colors.TextprimaryDark,
+    textAlign: 'center'
+  },
+
 });

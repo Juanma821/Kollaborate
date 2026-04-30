@@ -383,7 +383,7 @@ export const globalStyles = StyleSheet.create({
         paddingVertical: 75,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: Colors.primary,
+        backgroundColor: Colors.card,
         marginHorizontal: 5,
         marginBottom: 20,
         borderRadius: 12,
