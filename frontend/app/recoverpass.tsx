@@ -18,7 +18,7 @@ export default function Recoverpass() {
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!normalizedEmail) {
-      setError('Ingresa tu correo electronico');
+      setError('Ingresa tu correo electrónico');
       return;
     }
 
@@ -35,7 +35,7 @@ export default function Recoverpass() {
 
       router.push('/verification');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'No se pudo iniciar la recuperacion';
+      const message = err instanceof Error ? err.message : 'No se pudo iniciar la recuperación';
       setError(message);
     } finally {
       setLoading(false);
@@ -49,8 +49,8 @@ export default function Recoverpass() {
       <View style={[globalStyles.containerAuth, { paddingTop: insets.top }]}>
         <View style={globalStyles.iconContainerAuthA}>
           <Image source={IconApp} style={globalStyles.profileImageAuthA} />
-          <Text style={globalStyles.titleAuth}>Recuperar contrasena</Text>
-          <Text style={globalStyles.subtitleAuth}>Ingresa tu correo electronico</Text>
+          <Text style={globalStyles.titleAuth}>Recuperar contraseña</Text>
+          <Text style={globalStyles.subtitleAuth}>Ingresa tu correo electrónico</Text>
         </View>
 
         <View style={globalStyles.bottomSectionAuth}>

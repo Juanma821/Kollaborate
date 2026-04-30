@@ -61,12 +61,12 @@ export default function Verification() {
     const enteredCode = code.join('');
 
     if (enteredCode.length !== 6) {
-      Alert.alert('Codigo incompleto', 'Ingresa los 6 digitos del codigo.');
+      Alert.alert('Código incompleto', 'Ingresa los 6 dígitos del código.');
       return;
     }
 
     if (serverCode && enteredCode !== serverCode) {
-      Alert.alert('Codigo invalido', 'El codigo ingresado no coincide.');
+      Alert.alert('Código invalido', 'El código ingresado no coincide.');
       return;
     }
 
@@ -75,7 +75,7 @@ export default function Verification() {
 
   const handleResend = async () => {
     if (!email) {
-      Alert.alert('Error', 'No se encontro el correo para reenviar el codigo.');
+      Alert.alert('Error', 'No se encontro el correo para reenviar el código.');
       return;
     }
 
@@ -88,9 +88,9 @@ export default function Verification() {
         setServerCode(data.codigo);
       }
 
-      Alert.alert('Listo', 'Se genero un nuevo codigo de verificacion.');
+      Alert.alert('Listo', 'Se genero un nuevo código de verificación.');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'No se pudo reenviar el codigo';
+      const message = err instanceof Error ? err.message : 'No se pudo reenviar el código';
       Alert.alert('Error', message);
     } finally {
       setLoading(false);
@@ -104,9 +104,9 @@ export default function Verification() {
       <View style={[globalStyles.containerAuth, { alignItems: 'center', paddingTop: insets.top }]}>
         <View style={[globalStyles.iconContainerAuthB, { flex: 0.4, paddingHorizontal: 40 }]}>
           <Image source={IconApp} style={globalStyles.profileImageAuthB} />
-          <Text style={globalStyles.titleAuth}>Verificacion</Text>
+          <Text style={globalStyles.titleAuth}>Verificación</Text>
           <Text style={[globalStyles.subtitleAuth, { textAlign: 'center' }]}>
-            Hemos generado un codigo de 6 digitos para tu recuperacion.
+            Hemos generado un código de 6 dígitos para tu recuperación.
           </Text>
         </View>
 
@@ -131,12 +131,12 @@ export default function Verification() {
             style={globalStyles.buttonAuth}
             onPress={handleVerify}
           >
-            <Text style={globalStyles.buttonTextAuth}>Verificar codigo</Text>
+            <Text style={globalStyles.buttonTextAuth}>Verificar código</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={{ marginTop: 20 }} onPress={handleResend} disabled={loading}>
             <Text style={styles.resendText}>
-              No recibiste el codigo? <Text style={globalStyles.linkTextAuth}>{loading ? 'Reenviando...' : 'Reenviar'}</Text>
+              ¿No recibiste el código? <Text style={globalStyles.linkTextAuth}>{loading ? 'Reenviando...' : 'Reenviar'}</Text>
             </Text>
           </TouchableOpacity>
         </View>

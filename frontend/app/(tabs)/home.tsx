@@ -58,27 +58,29 @@ export default function Home() {
         />
       </View>
 
+      <View style={[globalStyles.divider,{marginVertical: 5, marginBottom: 5}]} />
+
       {/* Título */}
       <View style={styles.titleContainer}>
         <Text style={styles.title}>Podría interesarte</Text>
       </View>
 
       {/* Accesos rapidos */}
-      <View style={[globalStyles.contentSectionA, { backgroundColor: Colors.card }]}>
+      <View style={globalStyles.contentSectionA}>
         <View style={styles.columnHomeR}>
-          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/(tabs)/profile/skills')}>
+          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/skills')}>
             <Text>Ser Mentor</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/(tabs)/profile/statistics')}>
+          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/statistics')}>
             <Text>Estadísticas</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.columnHomeL}>
-          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/(tabs)/profile/token')}>
+          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/token')}>
             <Text>Mi Billetera</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/(tabs)/profile/configuration/report')}>
+          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/configuration/report')}>
             <Text>Reportes</Text>
           </TouchableOpacity>
         </View>
@@ -90,13 +92,13 @@ export default function Home() {
 const styles = StyleSheet.create({
   carouselContainer: {
     alignItems: 'center',
-    backgroundColor: Colors.card,
-    // Eliminamos el paddingBottom fijo y dejamos que el contenido mande
+    backgroundColor: Colors.appBg,
+
     paddingBottom: 20,
   },
   card: {
     flex: 1,
-    marginHorizontal: 10, // Un pequeño margen para que no toque los bordes físicos del cel
+    marginHorizontal: 10,
     backgroundColor: Colors.colorCard,
     borderRadius: 15,
     overflow: 'hidden',
@@ -104,17 +106,17 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover', // Ahora que las proporciones coinciden, 'cover' no recortará casi nada
+    resizeMode: 'cover',
   },
   textOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)', // Oscurece un poco la imagen para que el texto sea legible
+    backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: "center",
     alignItems: "center",
     padding: 10,
   },
   cardText: {
-    color: '#FFFFFF', // Blanco para que resalte sobre el overlay
+    color: '#FFFFFF',
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -146,7 +148,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    margin: 20,
+    margin: 10,
     color: Colors.TextprimaryDark,
   },
   columnHomeR: {

@@ -439,4 +439,11 @@ export const globalStyles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 16
     },
+
+    divider: {
+        height: 1,
+        backgroundColor: Colors.borderDarked,
+        marginVertical: 5,
+        marginBottom: 20,
+    },
 });

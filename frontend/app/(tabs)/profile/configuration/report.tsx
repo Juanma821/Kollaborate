@@ -64,13 +64,13 @@ const styles = StyleSheet.create({
   title: { 
     fontSize: 24, 
     fontWeight: 'bold', 
-    color: Colors.textDark, 
+    color: Colors.TextprimaryDark, 
     marginBottom: 10,
     textAlign: 'center' 
   },
   subtitle: { 
     fontSize: 14, 
-    color: Colors.textMuted, 
+    color: Colors.TextprimaryDark, 
     marginBottom: 25,
     textAlign: 'center' 
   },
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     marginTop: 15 
   },
   pickerSimulado: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.whiteBg,
     padding: 15,
     borderRadius: 10,
     flexDirection: 'row',
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.borderDefault
   },
   textArea: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.whiteBg,
     borderRadius: 10,
     padding: 15,
     height: 150,

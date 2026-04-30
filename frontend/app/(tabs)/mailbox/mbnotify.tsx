@@ -52,7 +52,7 @@ export default function MBnotify() {
     switch (nivel) {
       case 'Básico': return '#4caf50';
       case 'Intermedio': return '#2196f3';
-      case 'Avanzado': return '#ff9800';
+      case 'Avanzado': return '#ff7b00';
       case 'Experto': return '#9c27b0';
       default: return Colors.textMuted;
     }
@@ -112,6 +112,7 @@ export default function MBnotify() {
               <Text style={globalStyles.reputacionText}>
                 ⭐ {solicitud?.reputacion_valor ? solicitud.reputacion_valor.toFixed(1) : '0.0'}
               </Text>
+
               <View style={[globalStyles.badge, { backgroundColor: solicitud?.nivel_color || '#CCC' }]}>
                 <Text style={globalStyles.badgeText}>
                   {solicitud?.nivel_nombre || 'S/N'}

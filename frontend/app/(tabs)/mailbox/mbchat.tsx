@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   panelTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#bbb',
+    color: Colors.TextprimaryDark,
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 1

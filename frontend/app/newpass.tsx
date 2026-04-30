@@ -24,12 +24,12 @@ export default function Newpass() {
     }
 
     if (newPassword.length < 6) {
-      setError('La contrasena debe tener al menos 6 caracteres');
+      setError('La contraseña debe tener al menos 6 carácteres');
       return;
     }
 
     if (newPassword !== confirmNewPassword) {
-      setError('Las contrasenas no coinciden');
+      setError('Las contraseñas no coinciden');
       return;
     }
 
@@ -40,17 +40,17 @@ export default function Newpass() {
       const codigo = await getRecoveryCode();
 
       if (!email || !codigo) {
-        setError('Faltan datos de recuperacion. Vuelve a iniciar el proceso.');
+        setError('Faltan datos de recuperación. Vuelve a iniciar el proceso.');
         return;
       }
 
       const data = await resetPasswordRequest(email, codigo, newPassword);
       await clearRecoveryData();
 
-      Alert.alert('Exito', data.message || 'Contrasena actualizada correctamente');
+      Alert.alert('Exito', data.message || 'Contraseña actualizada correctamente');
       router.replace('/login');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'No se pudo cambiar la contrasena';
+      const message = err instanceof Error ? err.message : 'No se pudo cambiar la contraseña';
       setError(message);
     } finally {
       setLoading(false);
@@ -64,12 +64,12 @@ export default function Newpass() {
       <View style={[globalStyles.containerAuth, { paddingTop: insets.top }]}>
         <View style={[globalStyles.iconContainerAuthB, { flex: 0.3 }]}>
           <Image source={IconApp} style={globalStyles.profileImageAuthA} />
-          <Text style={globalStyles.titleAuth}>Nueva contrasena</Text>
+          <Text style={globalStyles.titleAuth}>Nueva contraseña</Text>
         </View>
 
         <View style={globalStyles.bottomSectionAuth}>
           <View style={globalStyles.formAuth}>
-            <Text style={globalStyles.labelAuth}>Nueva contrasena</Text>
+            <Text style={globalStyles.labelAuth}>Nueva contraseña</Text>
             <TextInput
               style={globalStyles.inputAuth}
               value={newPassword}
@@ -79,7 +79,7 @@ export default function Newpass() {
               placeholderTextColor="#aaa"
             />
 
-            <Text style={globalStyles.labelAuth}>Confirmar nueva contrasena</Text>
+            <Text style={globalStyles.labelAuth}>Confirmar nueva contraseña</Text>
             <TextInput
               style={globalStyles.inputAuth}
               value={confirmNewPassword}
@@ -102,7 +102,7 @@ export default function Newpass() {
             disabled={loading}
           >
             <Text style={globalStyles.buttonTextAuth}>
-              {loading ? 'Actualizando...' : 'Cambiar contrasena'}
+              {loading ? 'Actualizando...' : 'Cambiar contraseña'}
             </Text>
           </TouchableOpacity>
         </View>

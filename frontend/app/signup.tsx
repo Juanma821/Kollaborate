@@ -57,17 +57,17 @@ export default function Signup() {
     }
 
     if (!normalizedAlias) {
-      setError('Ingresa un alias valido');
+      setError('Ingresa un alias válido');
       return;
     }
 
     if (!institucion) {
-      setError('Selecciona una institucion');
+      setError('Selecciona una institución');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Las contrasenas no coinciden');
+      setError('Las contraseñas no coinciden');
       return;
     }
 
@@ -107,7 +107,7 @@ export default function Signup() {
           <Text style={globalStyles.titleAuth}>Crear cuenta</Text>
           <Link href="/login">
             <Text style={globalStyles.subtitleAuth}>
-              Ya tienes una cuenta? <Text style={globalStyles.linkTextAuth}>Inicia sesion aqui</Text>
+              ¿Ya tienes una cuenta? <Text style={globalStyles.linkTextAuth}>Inicia sesión aquí</Text>
             </Text>
           </Link>
         </View>
@@ -134,7 +134,7 @@ export default function Signup() {
                 autoCapitalize="none"
               />
 
-              <Text style={globalStyles.labelAuth}>Institucion</Text>
+              <Text style={globalStyles.labelAuth}>Institución</Text>
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={institucion}
@@ -143,7 +143,7 @@ export default function Signup() {
                   mode="dropdown"
                 >
                   <Picker.Item
-                    label={loadingInstitutions ? 'Cargando instituciones...' : 'Selecciona una institucion'}
+                    label={loadingInstitutions ? 'Cargando instituciones...' : 'Selecciona una institución'}
                     value=""
                     color="#999"
                   />
@@ -153,7 +153,7 @@ export default function Signup() {
                 </Picker>
               </View>
 
-              <Text style={globalStyles.labelAuth}>Correo electronico</Text>
+              <Text style={globalStyles.labelAuth}>Correo electrónico</Text>
               <TextInput
                 style={globalStyles.inputAuth}
                 value={email}
@@ -164,10 +164,10 @@ export default function Signup() {
                 placeholderTextColor="#aaa"
               />
 
-              <Text style={globalStyles.labelAuth}>Contrasena</Text>
+              <Text style={globalStyles.labelAuth}>Contraseña</Text>
               <TextInput style={globalStyles.inputAuth} value={password} onChangeText={setPassword} placeholder="********" placeholderTextColor="#aaa" secureTextEntry />
 
-              <Text style={globalStyles.labelAuth}>Confirmar contrasena</Text>
+              <Text style={globalStyles.labelAuth}>Confirmar contraseña</Text>
               <TextInput style={globalStyles.inputAuth} value={confirmPassword} onChangeText={setConfirmPassword} placeholder="********" placeholderTextColor="#aaa" secureTextEntry />
 
               {!!error && (

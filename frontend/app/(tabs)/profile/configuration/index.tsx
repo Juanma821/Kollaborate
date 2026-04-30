@@ -47,7 +47,7 @@ export default function Configuration() {
   const handleLogout = () => {
     Alert.alert(
       'Cerrar sesion',
-      'Estas seguro de que quieres salir?',
+      '¿Estas seguro de que quieres salir?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -83,12 +83,12 @@ export default function Configuration() {
     }
 
     if (newPassword.length < 6) {
-      setErrorMessage('La nueva contrasena debe tener al menos 6 caracteres.');
+      setErrorMessage('La nueva contraseña debe tener al menos 6 caracteres.');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setErrorMessage('Las contrasenas nuevas no coinciden.');
+      setErrorMessage('Las contraseñas nuevas no coinciden.');
       return;
     }
 
@@ -102,7 +102,7 @@ export default function Configuration() {
 
       const data = await changePasswordRequest(token, currentPassword, newPassword);
 
-      Alert.alert('Exito', data.message || 'Tu contrasena ha sido actualizada correctamente.');
+      Alert.alert('Exito', data.message || 'Tu contraseña ha sido actualizada correctamente.');
       setModalVisible(false);
       resetModal();
     } catch (error) {
@@ -140,7 +140,7 @@ export default function Configuration() {
         style={[styles.settingItem, { borderBottomColor: theme.border }]}
         onPress={() => setModalVisible(true)}
       >
-        <Text style={[styles.settingLabel, { color: theme.text }]}>Cambiar contrasena</Text>
+        <Text style={[styles.settingLabel, { color: theme.text }]}>Cambiar contraseña</Text>
         <Feather name="lock" size={20} color={theme.subtext} />
       </TouchableOpacity>
 
@@ -156,7 +156,7 @@ export default function Configuration() {
         style={[styles.logoutButton, isDarkMode && { backgroundColor: '#441111', borderColor: '#661111' }]}
         onPress={handleLogout}
       >
-        <Text style={[styles.settingLabel, { color: 'red', fontWeight: 'bold' }]}>Cerrar sesion</Text>
+        <Text style={[styles.settingLabel, { color: 'red', fontWeight: 'bold' }]}>Cerrar sesión</Text>
         <Feather name="log-out" size={28} color="red" />
       </TouchableOpacity>
 
@@ -166,13 +166,13 @@ export default function Configuration() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={globalStyles.modalOverlay}>
+        <View style={[globalStyles.modalOverlay,{alignItems: 'center',}]}>
           <View style={[styles.modalView, { backgroundColor: theme.surface }]}>
             <Text style={[globalStyles.modalTitle, { textAlign: 'center', marginBottom: 20, color: theme.text }]}>
-              Cambiar contrasena
+              Cambiar contraseña
             </Text>
 
-            <Text style={[globalStyles.label, { color: theme.text }]}>Contrasena actual</Text>
+            <Text style={[globalStyles.label, { color: theme.text }]}>Contraseña actual</Text>
             <TextInput
               style={[styles.input, { color: theme.text, borderColor: theme.border }]}
               secureTextEntry
@@ -181,7 +181,7 @@ export default function Configuration() {
               placeholderTextColor={theme.subtext}
             />
 
-            <Text style={[globalStyles.label, { color: theme.text }]}>Nueva contrasena</Text>
+            <Text style={[globalStyles.label, { color: theme.text }]}>Nueva contraseña</Text>
             <TextInput
               style={[styles.input, { color: theme.text, borderColor: theme.border }]}
               secureTextEntry
@@ -190,7 +190,7 @@ export default function Configuration() {
               placeholderTextColor={theme.subtext}
             />
 
-            <Text style={[globalStyles.label, { color: theme.text }]}>Confirmar nueva contrasena</Text>
+            <Text style={[globalStyles.label, { color: theme.text }]}>Confirmar nueva contraseña</Text>
             <TextInput
               style={[styles.input, { color: theme.text, borderColor: theme.border }]}
               secureTextEntry

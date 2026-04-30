@@ -162,7 +162,7 @@ export default function EditProfile() {
             autoCapitalize="none"
           />
 
-          <Text style={[globalStyles.label, { marginBottom: -10 }]}>Cumpleanos</Text>
+          <Text style={[globalStyles.label, { marginBottom: -10 }]}>Cumpleaños</Text>
           <TouchableOpacity style={styles.inputSimulado} onPress={() => setMostrarPicker(true)}>
             <Text style={globalStyles.inputText}>{textoFecha}</Text>
           </TouchableOpacity>
@@ -177,7 +177,7 @@ export default function EditProfile() {
             />
           )}
 
-          <Text style={[globalStyles.label, { marginBottom: -10 }]}>Institucion</Text>
+          <Text style={[globalStyles.label, { marginBottom: -10 }]}>Institución</Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={institucionId}
@@ -191,7 +191,7 @@ export default function EditProfile() {
             </Picker>
           </View>
 
-          <Text style={[globalStyles.label, { marginBottom: -10 }]}>Correo electronico</Text>
+          <Text style={[globalStyles.label, { marginBottom: -10 }]}>Correo electrónico</Text>
           <TextInput
             style={[globalStyles.input, { padding: 15, fontSize: 16 }]}
             value={email}

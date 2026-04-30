@@ -188,7 +188,7 @@ export default function Search() {
 
   return (
     <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
-      <Text style={globalStyles.headerTitle}>Explorar habilidades</Text>
+      <Text style={[globalStyles.headerTitle,{color: Colors.TextprimaryDark}]}>Explorar habilidades</Text>
 
       <View style={{ paddingHorizontal: 20 }}>
         <SearchBar
@@ -204,7 +204,7 @@ export default function Search() {
         <ActivityIndicator size="large" color="#ff743dff" style={{ marginTop: 50 }} />
       ) : (
         <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <Text style={styles.sectionLabel}>
+          <Text style={[styles.sectionLabel, { color: Colors.TextprimaryDark }]}>
             {searchQuery
               ? `Resultados para "${searchQuery}"`
               : categoriaActiva !== 'Todas'

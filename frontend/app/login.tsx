@@ -19,7 +19,7 @@ export default function Login() {
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!normalizedEmail || !password) {
-      setError('Ingresa tu correo y tu contrasena');
+      setError('Ingresa tu correo y tu contraseña');
       return;
     }
 
@@ -48,7 +48,7 @@ export default function Login() {
           <Text style={globalStyles.titleAuth}>Bienvenido</Text>
           <Link href="/signup">
             <Text style={globalStyles.subtitleAuth}>
-              No tienes una cuenta? <Text style={globalStyles.linkTextAuth}>Registrate aqui</Text>
+              ¿No tienes una cuenta? <Text style={globalStyles.linkTextAuth}>Registrate aquí</Text>
             </Text>
           </Link>
         </View>
@@ -66,7 +66,7 @@ export default function Login() {
               keyboardType="email-address"
             />
 
-            <Text style={globalStyles.labelAuth}>Contrasena</Text>
+            <Text style={globalStyles.labelAuth}>Contraseña</Text>
             <TextInput
               style={globalStyles.inputAuth}
               value={password}
@@ -79,7 +79,7 @@ export default function Login() {
             <TouchableOpacity>
               <Link href="/recoverpass">
                 <Text style={[globalStyles.linkTextAuth, { textAlign: 'center' }]}>
-                  Olvidaste tu contrasena?
+                  ¿Olvidaste tu contraseña?
                 </Text>
               </Link>
             </TouchableOpacity>
@@ -96,7 +96,7 @@ export default function Login() {
             onPress={handleLogin}
             disabled={loading}>
             <Text style={globalStyles.buttonTextAuth}>
-              {loading ? 'Ingresando...' : 'Iniciar Sesion'}
+              {loading ? 'Ingresando...' : 'Iniciar Sesión'}
             </Text>
           </TouchableOpacity>
         </View>

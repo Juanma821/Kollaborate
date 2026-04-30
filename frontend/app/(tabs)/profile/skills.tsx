@@ -207,7 +207,7 @@ const fetchCategorias = async () => {
 
     return (
       <View style={[styles.section, { zIndex: isActive ? 10 : 1 }]}>
-        <Text style={styles.sectionTitle}>
+        <Text style={[styles.sectionTitle, {color: Colors.TextprimaryDark}]}>
           {type === 'ofrezco' ? 'Habilidades que brindo' : 'Habilidades que busco'}
         </Text>
 
