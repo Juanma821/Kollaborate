@@ -335,22 +335,30 @@ const getSkillsByCategoria = async () => {
         connection = await db.getConnection();
 
         const result = await connection.execute(
-            `SELECT id, nombre, categoria FROM habilidades 
-             ORDER BY categoria, nombre`,
+            `SELECT id AS "id", nombre AS "nombre", categoria AS "categoria" 
+             FROM habilidades 
+             ORDER BY "categoria", "nombre"`,
             {},
-            { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
+            { outFormat: db.oracledb.OUT_FORMAT_OBJECT } 
         );
 
-        // Agrupar por categoría
         const agrupadas = {};
-        result.rows.forEach(row => {
-            const cat = row.CATEGORIA || 'Otras';
-            if (!agrupadas[cat]) agrupadas[cat] = [];
-            agrupadas[cat].push({ id: row.ID, nombre: row.NOMBRE });
-        });
+        
+        if (result && result.rows && Array.isArray(result.rows)) {
+            result.rows.forEach(row => {
+                const cat = row.categoria || 'Otras'; 
+                
+                if (!agrupadas[cat]) agrupadas[cat] = [];
+                
+                agrupadas[cat].push({ id: row.id, nombre: row.nombre });
+            });
+        }
 
         return agrupadas;
 
+    } catch (error) {
+        console.error("Error en getSkillsByCategoria Service:", error.message);
+        throw error;
     } finally {
         if (connection) await connection.close();
     }

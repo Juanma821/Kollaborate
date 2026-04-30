@@ -53,19 +53,17 @@ const getMatches = async (userId, categoria = null) => {
 
 const getMatchProfileById = async (userId) => {
     let connection;
-
     try {
         connection = await db.getConnection();
-
         const userResult = await connection.execute(
             `SELECT 
-                u.id,
-                u.nombre,
-                u.apellido,
-                u.alias,
-                u.reputacion_promedio,
-                u.rol,
-                i.nombre AS institucion_nombre
+                u.id AS "id",
+                u.nombre AS "nombre",
+                u.apellido AS "apellido",
+                u.alias AS "alias",
+                u.reputacion_promedio AS "reputacion",
+                u.rol AS "rol",
+                i.nombre AS "institucion_nombre"
              FROM usuarios u
              LEFT JOIN instituciones i ON i.id = u.institucion_id
              WHERE u.id = :id`,
@@ -77,7 +75,7 @@ const getMatchProfileById = async (userId) => {
         if (!user) return null;
 
         const skillsResult = await connection.execute(
-            `SELECT h.id, h.nombre, uh.tipo
+            `SELECT h.id AS "id", h.nombre AS "nombre", uh.tipo AS "tipo"
              FROM usuario_habilidades uh
              JOIN habilidades h ON h.id = uh.habilidad_id
              WHERE uh.usuario_id = :id`,
@@ -86,25 +84,27 @@ const getMatchProfileById = async (userId) => {
         );
 
         return {
-            id: user.ID,
-            nombre: user.NOMBRE,
-            apellido: user.APELLIDO,
-            alias: user.ALIAS,
-            reputacion: user.REPUTACION_PROMEDIO || 0,
-            rol: user.ROL,
-            institucion_nombre: user.INSTITUCION_NOMBRE || null,
+            id: user.id,
+            nombre: user.nombre,
+            apellido: user.apellido,
+            alias: user.alias,
+            reputacion: user.reputacion || 0,
+            rol: user.rol,
+            institucion_nombre: user.institucion_nombre || null,
             ofrezco: skillsResult.rows
-                .filter((row) => row.TIPO === 'Ofrece')
-                .map((row) => ({ id: row.ID, nombre: row.NOMBRE })),
+                .filter((row) => row.tipo === 'Ofrece')
+                .map((row) => ({ id: row.id, nombre: row.nombre })),
             busco: skillsResult.rows
-                .filter((row) => row.TIPO === 'Busca')
-                .map((row) => ({ id: row.ID, nombre: row.NOMBRE }))
+                .filter((row) => row.tipo === 'Busca')
+                .map((row) => ({ id: row.id, nombre: row.nombre }))
         };
 
+    } catch (error) {
+        console.error("Error en getMatchProfileById:", error.message);
+        throw error; 
     } finally {
         if (connection) await connection.close();
     }
 };
-
 
 module.exports = { getMatches, getMatchProfileById };
