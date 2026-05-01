@@ -6,13 +6,19 @@ const getMatches = async (userId, categoria = null) => {
         connection = await db.getConnection();
 
         const query = `
-            SELECT 
+            SELECT DISTINCT
                 u.id,
                 u.nombre,
                 u.apellido,
                 u.alias,
-                LISTAGG(h.nombre, ', ') WITHIN GROUP (ORDER BY h.nombre) AS habilidades,
-                LISTAGG(h.categoria, ', ') WITHIN GROUP (ORDER BY h.nombre) AS categorias
+                (SELECT LISTAGG(h2.nombre, ', ') WITHIN GROUP (ORDER BY h2.nombre)
+                 FROM usuario_habilidades uh2
+                 JOIN habilidades h2 ON h2.id = uh2.habilidad_id
+                 WHERE uh2.usuario_id = u.id AND uh2.tipo = 'Ofrece') AS habilidades,
+                (SELECT LISTAGG(h2.categoria, ', ') WITHIN GROUP (ORDER BY h2.nombre)
+                 FROM usuario_habilidades uh2
+                 JOIN habilidades h2 ON h2.id = uh2.habilidad_id
+                 WHERE uh2.usuario_id = u.id AND uh2.tipo = 'Ofrece') AS categorias
             FROM usuario_habilidades uh_busca
             JOIN usuario_habilidades uh_ofrece 
                 ON uh_busca.habilidad_id = uh_ofrece.habilidad_id
@@ -24,8 +30,13 @@ const getMatches = async (userId, categoria = null) => {
             AND uh_busca.tipo = 'Busca'
             AND uh_ofrece.tipo = 'Ofrece'
             AND uh_ofrece.usuario_id != :userId
-            ${categoria ? `AND LOWER(h.categoria) = LOWER(:categoria)` : ''}
-            GROUP BY u.id, u.nombre, u.apellido, u.alias
+            ${categoria ? `AND EXISTS (
+                SELECT 1 FROM usuario_habilidades uh3
+                JOIN habilidades h3 ON h3.id = uh3.habilidad_id
+                WHERE uh3.usuario_id = u.id
+                AND uh3.tipo = 'Ofrece'
+                AND LOWER(h3.categoria) = LOWER(:categoria)
+            )` : ''}
         `;
 
         const binds = categoria ? { userId, categoria } : { userId };

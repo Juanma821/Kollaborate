@@ -20,10 +20,10 @@ export default function ProfileResult() {
   const router = useRouter();
 
   const PRECIOS_NIVEL = {
-    'Básico': 50,
-    'Intermedio': 80,
-    'Avanzado': 120,
-    'Experto': 150
+    'Básico': 10,
+    'Intermedio': 20,
+    'Avanzado': 35,
+    'Experto': 50
   };
 
   const [profile, setProfile] = useState<MatchProfile | null>(null);

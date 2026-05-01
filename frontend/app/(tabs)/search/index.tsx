@@ -9,6 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { getMatchesRequest, type MatchItem } from '../../_utils/api';
 import { getToken } from '../../_utils/authStorage';
+import { useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 
 const CATEGORIAS = [
   'Todas',
@@ -141,10 +143,11 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [categoriaActiva, setCategoriaActiva] = useState('Todas');
 
-  useEffect(() => {
-    loadMatches();
-  }, []);
-
+  useFocusEffect(
+    useCallback(() => {
+      loadMatches(categoriaActiva !== 'Todas' ? categoriaActiva : undefined);
+    }, [categoriaActiva]) // 
+  );
   const loadMatches = async (categoria?: string) => {
     try {
       setLoading(true);
