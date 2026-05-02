@@ -12,7 +12,7 @@ export const Colors = {
 
   // Backgrounds
   authBg: '#293442',        
-  appBg: '#f8f9fa',        
+  appBg: '#faf8f8',        
   iconAppBg: '#131313',     
   iconProfileBg: '#eeeeee',
   whiteBg: '#ffffff',

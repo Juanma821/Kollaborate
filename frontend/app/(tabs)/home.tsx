@@ -1,7 +1,6 @@
 import * as React from "react";
 import { router } from 'expo-router';
-// 1. IMPORTANTE: Agregamos Image a los componentes de react-native
-import { TouchableOpacity, Dimensions, StyleSheet, Text, View, Image } from "react-native";
+import { TouchableOpacity, Dimensions, StyleSheet, Text, View, Image, ImageBackground, ScrollView } from "react-native";
 
 import { Colors } from '../../assets/images/constants/Colors';
 import { globalStyles } from '../../assets/images/constants/globalStyles';
@@ -32,59 +31,102 @@ export default function Home() {
 
   return (
     <View style={globalStyles.containerApp}>
-      {/* Carrusel */}
-      <View style={styles.carouselContainer}>
-        <Carousel
-          ref={ref}
-          width={width}
-          height={CAROUSEL_HEIGHT}
-          data={data}
-          onProgressChange={progress}
-          autoPlay={true}
-          autoPlayInterval={3000}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Image source={item.img} style={styles.cardImage} />
-            </View>
-          )}
-        />
-        <Pagination.Basic
-          progress={progress}
-          data={data}
-          dotStyle={styles.dot}
-          activeDotStyle={styles.activeDot}
-          containerStyle={styles.paginationContainer}
-          onPress={onPressPagination}
-        />
-      </View>
-
-      <View style={[globalStyles.divider,{marginVertical: 5, marginBottom: 5}]} />
-
-      {/* Título */}
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Podría interesarte</Text>
-      </View>
-
-      {/* Accesos rapidos */}
-      <View style={globalStyles.contentSectionA}>
-        <View style={styles.columnHomeR}>
-          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/skills')}>
-            <Text>Ser Mentor</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/statistics')}>
-            <Text>Estadísticas</Text>
-          </TouchableOpacity>
+      <ScrollView
+        showsVerticalScrollIndicator={false} // Oculta la barra de scroll para un look más limpio
+        contentContainerStyle={{ paddingBottom: 20 }} // Espacio extra al final
+      >
+        {/* Carrusel */}
+        <View style={styles.carouselContainer}>
+          <Carousel
+            ref={ref}
+            width={width}
+            height={CAROUSEL_HEIGHT}
+            data={data}
+            onProgressChange={progress}
+            autoPlay={true}
+            autoPlayInterval={3000}
+            renderItem={({ item }) => (
+              <View style={styles.card}>
+                <Image source={item.img} style={styles.cardImage} />
+              </View>
+            )}
+          />
+          <Pagination.Basic
+            progress={progress}
+            data={data}
+            dotStyle={styles.dot}
+            activeDotStyle={styles.activeDot}
+            containerStyle={styles.paginationContainer}
+            onPress={onPressPagination}
+          />
         </View>
 
-        <View style={styles.columnHomeL}>
-          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/token')}>
-            <Text>Mi Billetera</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/configuration/report')}>
-            <Text>Reportes</Text>
-          </TouchableOpacity>
+        <View style={[globalStyles.divider, { marginVertical: 5, marginBottom: 5 }]} />
+
+        {/* Título */}
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Podría interesarte</Text>
         </View>
-      </View>
+
+        {/* Accesos rápidos */}
+        <View style={styles.accessSection}>
+          <View style={styles.column}>
+            <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/skills')}>
+              <ImageBackground
+                source={require('../../assets/images/Skills.png')}
+                style={styles.bgImage}
+                imageStyle={{ borderRadius: 12 }}
+                resizeMode="cover"
+              >
+                <View style={styles.overlay}>
+                  <Text style={styles.buttonText}>Habilidades</Text>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/statistics')}>
+              <ImageBackground
+                source={require('../../assets/images/Statistic.png')}
+                style={styles.bgImage}
+                imageStyle={{ borderRadius: 12 }}
+                resizeMode="cover"
+              >
+                <View style={styles.overlay}>
+                  <Text style={[styles.buttonText,{fontSize: 16,}]}>Estadísticas</Text>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.column}>
+            <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/token')}>
+              <ImageBackground
+                source={require('../../assets/images/Tokens.png')}
+                style={styles.bgImage}
+                imageStyle={{ borderRadius: 12 }}
+                resizeMode="cover"
+              >
+                <View style={styles.overlay}>
+                  <Text style={styles.buttonText}>Tokens</Text>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/configuration/report')}>
+              <ImageBackground
+                source={require('../../assets/images/Report.png')}
+                style={styles.bgImage}
+                imageStyle={{ borderRadius: 12 }}
+                resizeMode="cover"
+              >
+                <View style={styles.overlay}>
+                  <Text style={styles.buttonText}>Reportes</Text>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -151,25 +193,39 @@ const styles = StyleSheet.create({
     margin: 10,
     color: Colors.TextprimaryDark,
   },
-  columnHomeR: {
-    flex: 0.50,
-    alignItems: 'center',
-    borderRightWidth: 1,
-    borderRightColor: Colors.borderLight,
-    paddingRight: 10,
+  accessSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
   },
-  columnHomeL: {
-    flex: 0.50,
-    alignItems: 'center',
-    paddingLeft: 10,
+  column: {
+    width: '48%',
   },
   imageButton: {
-    width: '65%',
-    aspectRatio: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: '5%',
-    backgroundColor: Colors.colorCard,
+    height: 225,
     borderRadius: 12,
+    marginBottom: 15,
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
+    elevation: 5,
   },
+  bgImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    padding: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontFamily: 'monospace',
+  }
 });
