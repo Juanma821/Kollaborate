@@ -168,6 +168,14 @@ export default function Profile() {
           <FontAwesome6 name="coins" size={28} color="black" />
           <Text>Tokens</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => router.push('/(tabs)/profile/translator')}
+        >
+          <Ionicons name="language" size={28} color="black" />
+          <Text>Traductor</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
