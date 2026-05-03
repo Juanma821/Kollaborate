@@ -21,9 +21,9 @@ export default function ProfileResult() {
 
   const PRECIOS_NIVEL = {
     'Básico': 10,
-    'Intermedio': 20,
-    'Avanzado': 35,
-    'Experto': 50
+    'Intermedio': 15,
+    'Avanzado': 25,
+    'Experto': 35
   };
 
   const [profile, setProfile] = useState<MatchProfile | null>(null);
