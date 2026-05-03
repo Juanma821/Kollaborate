@@ -10,8 +10,8 @@ import Carousel, { ICarouselInstance, Pagination } from "react-native-reanimated
 
 const data = [
   { id: 1, title: '', img: require('../../assets/images/Carrusel-01.png') },
-  { id: 2, title: 'Nuevas Habilidades', img: require('../../assets/images/Carrusel-01.png') },
-  { id: 3, title: 'Gana Tokens', img: require('../../assets/images/Carrusel-01.png') },
+  { id: 2, title: 'Bonus Tokens', img: require('../../assets/images/Carrusel-02.png') },
+  { id: 3, title: 'Nuevo Traductor', img: require('../../assets/images/Carrusel-03.png') },
 ];
 
 const width = Dimensions.get("window").width;
@@ -32,8 +32,8 @@ export default function Home() {
   return (
     <View style={globalStyles.containerApp}>
       <ScrollView
-        showsVerticalScrollIndicator={false} // Oculta la barra de scroll para un look más limpio
-        contentContainerStyle={{ paddingBottom: 20 }} // Espacio extra al final
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
       >
         {/* Carrusel */}
         <View style={styles.carouselContainer}>
@@ -46,9 +46,18 @@ export default function Home() {
             autoPlay={true}
             autoPlayInterval={3000}
             renderItem={({ item }) => (
-              <View style={styles.card}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                disabled={item.id !== 3}
+                onPress={() => {
+                  if (item.id === 3) {
+                    router.push('/profile/translator');
+                  }
+                }}
+                style={styles.card}
+              >
                 <Image source={item.img} style={styles.cardImage} />
-              </View>
+              </TouchableOpacity>
             )}
           />
           <Pagination.Basic
@@ -92,7 +101,7 @@ export default function Home() {
                 resizeMode="cover"
               >
                 <View style={styles.overlay}>
-                  <Text style={[styles.buttonText,{fontSize: 16,}]}>Estadísticas</Text>
+                  <Text style={[styles.buttonText, { fontSize: 16, }]}>Estadísticas</Text>
                 </View>
               </ImageBackground>
             </TouchableOpacity>

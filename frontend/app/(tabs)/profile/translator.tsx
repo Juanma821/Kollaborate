@@ -96,10 +96,10 @@ export default function Translator() {
   return (
     <ScrollView
       style={[globalStyles.containerApp]}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 10 }]}
+      contentContainerStyle={[styles.container, { paddingTop: insets.top }]}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={globalStyles.headerTitle}>Traductor</Text>
+      <Text style={[globalStyles.headerTitle,{color: Colors.TextprimaryDark}]}>Traductor</Text>
 
       {/* Selector de idiomas */}
       <View style={styles.idiomasRow}>
