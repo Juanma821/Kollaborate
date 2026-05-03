@@ -1,81 +1,98 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+
+import { globalStyles } from '../../../assets/images/constants/globalStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getHistoryRequest, RecordActivity } from '../../_utils/api';
+import { getToken } from '../../_utils/authStorage';
 
 import { Colors } from '../../../assets/images/constants/Colors';
-import { globalStyles } from '../../../assets/images/constants/globalStyles';
-
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; //install
 
 export default function Record() {
-  const [selectedTab, setSelectedTab] = useState('day'); 
+  const [selectedTab, setSelectedTab] = useState<'day' | 'month' | 'year'>('day');
+  const [activities, setActivities] = useState<RecordActivity[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
 
-  // Datos de ejemplo para probar pestañas
-  const dayData = [
-    { id: 1, description: 'Aprendizaje', date: '2026-04-03' },
-  ];
-  const monthData = [
-    { id: 1, description: 'Aprendizaje', date: '2026-04-03' },
-    { id: 2, description: 'Enseñanza', date: '2026-04-01' },
-  ];
+  useEffect(() => {
+    setActivities([]); 
+    loadHistory();
+  }, [selectedTab]);
 
-  const yearData = [
-    { id: 1, description: 'Aprendizaje', date: '2026-04-03' },
-    { id: 2, description: 'Enseñanza', date: '2026-04-01' },
-    { id: 3, description: 'Enseñanza', date: '2026-02-07' },
-  ]
-
-  const currentData = selectedTab === 'day' ? dayData : selectedTab === 'month' ? monthData : yearData;
+  const loadHistory = async () => {
+    try {
+      setLoading(true);
+      const token = await getToken();
+      if (token) {
+        const data = await getHistoryRequest(token, selectedTab);
+        setActivities(data);
+      }
+    } catch (error) {
+      console.error("Error cargando historial:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
       
-      {/* Seccion Botones Dia, Mes y Año */}
+      {/* Botones de selección */}
       <View style={globalStyles.selectorContainer}>
-        <TouchableOpacity
-          style={[globalStyles.selectorButton, selectedTab === 'day' && globalStyles.selectorButtonActive]}
-          onPress={() => setSelectedTab('day')}
-        >
-          <Text style={[globalStyles.selectorText, selectedTab === 'day' && globalStyles.selectorTextActive]}>
-            Día
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[globalStyles.selectorButton, selectedTab === 'month' && globalStyles.selectorButtonActive]}
-          onPress={() => setSelectedTab('month')}
-        >
-          <Text style={[globalStyles.selectorText, selectedTab === 'month' && globalStyles.selectorTextActive]}>
-            Mes
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[globalStyles.selectorButton, selectedTab === 'year' && globalStyles.selectorButtonActive]}
-          onPress={() => setSelectedTab('year')}
-        >
-          <Text style={[globalStyles.selectorText, selectedTab === 'year' && globalStyles.selectorTextActive]}>
-            Año
-          </Text>
-        </TouchableOpacity>
+        {(['day', 'month', 'year'] as const).map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[
+              globalStyles.selectorButton, 
+              selectedTab === tab && globalStyles.selectorButtonActive
+            ]}
+            onPress={() => setSelectedTab(tab)}
+          >
+            <Text style={[
+              globalStyles.selectorText, 
+              selectedTab === tab && globalStyles.selectorTextActive
+            ]}>
+              {tab === 'day' ? 'Día' : tab === 'month' ? 'Mes' : 'Año'}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {/* Sección Contenido Datos Transferencia */}
       <View style={globalStyles.contentSectionB}>
-        <Text style={globalStyles.sectionTitle}>
-          {selectedTab === 'day' ? 'Actividades' : selectedTab === 'month' ? 'Actividades' : 'Actividades'}
-        </Text>
+        <Text style={globalStyles.sectionTitle}>Actividades</Text>
         
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {currentData.map(item => (
-            <View key={item.id} style={globalStyles.listItem}>
-              <View>
-                <Text style={globalStyles.itemDescription}>{item.description}</Text>
-                <Text style={globalStyles.itemDate}>{item.date}</Text>
-              </View>
-            </View>
-          ))}
-        </ScrollView>
+        {loading ? (
+          <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 20 }} />
+        ) : (
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {activities.length > 0 ? (
+              activities.map((item) => (
+                <View key={item.id} style={globalStyles.listItem}>
+                  <View>
+                    <Text style={globalStyles.itemDescription}>
+                      {item.description}
+                    </Text>
+                    
+                    <Text style={{ 
+                        color: item.type === 'Aprendizaje' ? Colors.confirmBg : Colors.positiveBg, 
+                        fontWeight: 'bold', 
+                        fontSize: 12,
+                        marginVertical: 2
+                    }}>
+                        {item.type.toUpperCase()}
+                    </Text>
+                    
+                    <Text style={globalStyles.itemDate}>{item.date}</Text>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <Text style={{ textAlign: 'center', marginTop: 40, color: 'gray' }}>
+                No hay actividades registradas en este periodo.
+              </Text>
+            )}
+          </ScrollView>
+        )}
       </View>
     </View>
   );

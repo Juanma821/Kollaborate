@@ -181,14 +181,14 @@ export default function Classroom() {
                       style={[globalStyles.modalButton, { backgroundColor: Colors.positiveBg,  flexDirection: 'row', justifyContent: 'center'  }]}
                       onPress={() => Alert.alert(
                         'Finalizar sesión',
-                        'Se transferirán 10 tokens al receptor. ¿Confirmás?',
+                        'Se transferirán los tokens correspondientes al receptor. ¿Confirmás?',
                         [
                           { text: 'Cancelar', style: 'cancel' },
                           { text: 'Confirmar', onPress: () => handleFinalizar(selectedSesion.id) }
                         ]
                       )}
                     >
-                      <Text style={globalStyles.modalButtonText}>✓ Finalizar sesión (-10 tokens)</Text>
+                      <Text style={globalStyles.modalButtonText}>✓ Finalizar sesión</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity

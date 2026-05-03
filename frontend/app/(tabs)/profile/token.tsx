@@ -1,36 +1,60 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 
 import { Colors } from '../../../assets/images/constants/Colors';
 import { globalStyles } from '../../../assets/images/constants/globalStyles';
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; //Install
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getTokensRequest } from '../../_utils/api';
+import { getToken } from '../../_utils/authStorage';
+
+interface TransferItem {
+  id: number;
+  description: string;
+  amount: string;
+  date: string;
+}
 
 export default function Token() {
-  const [selectedTab, setSelectedTab] = useState('received'); 
+  const [selectedTab, setSelectedTab] = useState<'received' | 'transferred'>('received');
+  const [balance, setBalance] = useState<number>(0);
+  const [history, setHistory] = useState<TransferItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  
   const insets = useSafeAreaInsets();
 
-  // Datos de ejemplo para probar pestañas
-  const receivedData = [
-    { id: 1, description: 'Recibido de Pedro', amount: '+100 tokens', date: '2024-01-15' },
-    { id: 2, description: 'Recibido de Ana', amount: '+50 tokens', date: '2024-01-14' },
-  ];
-  const transferredData = [
-    { id: 1, description: 'Transferencia a Juan', amount: '-50 tokens', date: '2024-01-15' },
-  ];
+  useEffect(() => {
+    loadTokenData();
+  }, [selectedTab]);
 
-  const currentData = selectedTab === 'received' ? receivedData : transferredData;
+  const loadTokenData = async () => {
+    try {
+      setLoading(true);
+      const userToken = await getToken();
+      if (userToken) {
+        const data = await getTokensRequest(userToken, selectedTab);
+        setBalance(data.balance);
+        setHistory(data.history);
+      }
+    } catch (error) {
+      console.error("Error cargando datos de billetera:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
       
-      {/* Sección Saldo Actual */}
+      {/* Sección Saldo Actual Dinámico */}
       <View style={styles.balanceContainer}>
         <Text style={styles.balanceLabel}>Saldo Actual</Text>
-        <Text style={styles.balanceAmount}>1,250 Tokens</Text>
+        <Text style={styles.balanceAmount}>
+          {balance.toLocaleString('es-CL')} Tokens
+        </Text>
       </View>
 
-      {/* Seccion Boton Recibido/Enviado */}
+      {/* Selector de Pestañas */}
       <View style={globalStyles.selectorContainer}>
         <TouchableOpacity
           style={[globalStyles.selectorButton, selectedTab === 'received' && globalStyles.selectorButtonActive]}
@@ -51,36 +75,44 @@ export default function Token() {
         </TouchableOpacity>
       </View>
 
-      {/* Sección Contenido Datos Transferencia */}
+      {/* Sección Historial */}
       <View style={globalStyles.contentSectionB}>
         <Text style={globalStyles.sectionTitle}>
           {selectedTab === 'received' ? 'Transferencias recibidas' : 'Transferencias enviadas'}
         </Text>
         
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {currentData.map(item => (
-            <View key={item.id} style={globalStyles.listItem}>
-              <View>
-                <Text style={globalStyles.itemDescription}>{item.description}</Text>
-                <Text style={globalStyles.itemDate}>{item.date}</Text>
-              </View>
-              <Text style={[
-                styles.itemAmount,
-                selectedTab === 'received' ? globalStyles.positiveAmount : globalStyles.negativeAmount
-              ]}>
-                {item.amount}
+        {loading ? (
+          <ActivityIndicator size="large" color={Colors.primary || "#0000ff"} style={{ marginTop: 20 }} />
+        ) : (
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {history.length > 0 ? (
+              history.map(item => (
+                <View key={item.id} style={globalStyles.listItem}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={globalStyles.itemDescription}>{item.description}</Text>
+                    <Text style={globalStyles.itemDate}>{item.date}</Text>
+                  </View>
+                  <Text style={[
+                    styles.itemAmount,
+                    selectedTab === 'received' ? globalStyles.positiveAmount : globalStyles.negativeAmount
+                  ]}>
+                    {item.amount}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text style={{ textAlign: 'center', marginTop: 30, color: 'gray' }}>
+                No hay movimientos registrados.
               </Text>
-            </View>
-          ))}
-        </ScrollView>
+            )}
+          </ScrollView>
+        )}
       </View>
     </View>
   );
 }
 
-// Estilos Propios
 const styles = StyleSheet.create({
-  // Estilo Container Saldo Actual
   balanceContainer: {
     paddingVertical: 30,
     alignItems: 'center',
@@ -89,7 +121,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 20,
     borderRadius: 12,
-    padding: 4,
     elevation: 3,
     shadowColor: Colors.shadow,
     shadowOpacity: 0.1,
@@ -105,9 +136,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.textDark,
   },
-  //Estilo Contenido Datos Transferencia
   itemAmount: {
     fontSize: 16,
     fontWeight: 'bold',
+    marginLeft: 10,
   },
 });
