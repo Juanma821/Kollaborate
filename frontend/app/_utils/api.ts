@@ -383,3 +383,23 @@ export const getStatisticsRequest = (token: string) =>
     token,
   });
   
+ //Historial
+export type RecordActivity = {
+  id: number;
+  description: string;
+  date: string;
+  type: 'Aprendizaje' | 'Enseñanza';
+};
+
+export const getHistoryRequest = (token: string, filter: 'day' | 'month' | 'year') =>
+  request<RecordActivity[]>(`/records/history?filter=${filter}`, {
+    method: 'GET',
+    token,
+  });
+
+  //Historia de Tokens
+export const getTokensRequest = (token: string, filter: string) =>
+  request<{ balance: number; history: any[] }>(`/tokens/wallet?filter=${filter}`, {
+    method: 'GET',
+    token,
+  });

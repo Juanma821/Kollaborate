@@ -11,6 +11,8 @@ const institutionRoutes = require('./routes/institution.routes');
 const mensajesRoutes = require('./routes/mensajes.routes');
 const sesionesRoutes = require('./routes/sesiones.routes');
 const statisticsRoutes = require('./routes/statistics.routes');
+const recordRoutes = require('./routes/record.routes');
+const tokenRoutes = require('./routes/token.routes');
 
 app.use(cors());
 app.use(express.json());
@@ -38,5 +40,9 @@ app.use('/api/institutions', institutionRoutes);
 app.use('/api/mensajes', mensajesRoutes);
 
 app.use('/api/statistics', statisticsRoutes);
+
+app.use('/api/records', recordRoutes);
+
+app.use('/api/tokens', tokenRoutes);
 
 module.exports = app;
