@@ -94,18 +94,28 @@ export default function ProfileResult() {
   };
   const costoActual = PRECIOS_NIVEL[nivel] || 50;
 
-  const handleSendSolicitud = async () => {
+const handleSendSolicitud = async () => {
     try {
       setLoading(true);
       const token = await getToken();
       if (!token || !profile || !habilidadId) return;
+
+      const anio = fecha.getFullYear();
+      const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+      const dia = fecha.getDate().toString().padStart(2, '0');
+      const horas = fecha.getHours().toString().padStart(2, '0');
+      const minutos = fecha.getMinutes().toString().padStart(2, '0');
+      const segundos = '00';
+
+      const fechaFormateadaOracle = `${anio}-${mes}-${dia} ${horas}:${minutos}:${segundos}`;
+      // ------------------------------------------------
 
       await createSolicitudRequest(token, {
         receptor_id: profile.id,
         habilidad_id: Number(habilidadId),
         modalidad: modalidad,
         nivel: nivel,
-        fecha_propuesta: fecha.toISOString(),
+        fecha_propuesta: fechaFormateadaOracle, 
         tokens_recompensa: costoActual
       });
 

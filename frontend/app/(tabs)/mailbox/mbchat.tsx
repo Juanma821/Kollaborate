@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ScrollView, Platform, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, FlatList, ScrollView, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,7 +10,6 @@ import { globalStyles } from '../../../assets/images/constants/globalStyles';
 import { getToken } from '../../_utils/authStorage';
 import { getMensajesRequest, enviarMensajeRequest } from '../../_utils/api';
 
-// Definición de tipos para TypeScript
 interface Message {
   id: string;
   emisor_id: number | null;
@@ -27,61 +26,85 @@ export default function MBChat() {
   const [loading, setLoading] = useState(true);
   const [myId, setMyId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const initChat = async () => {
-      try {
-        const token = await getToken();
-        if (token) {
+  const cargarMensajes = useCallback(async (isFirstLoad = false) => {
+    try {
+      const token = await getToken();
+      if (token) {
+        if (isFirstLoad) {
           const decoded: any = jwtDecode(token);
           setMyId(decoded.id);
-
-          const data = await getMensajesRequest(token, Number(sesionId));
-
-          const formattedMessages = data.map((m: any) => ({
-            id: m.id.toString(),
-            emisor_id: m.emisor_id,
-            text: m.text || m.contenido,
-            created_at: m.created_at
-          }));
-
-          setMessages(formattedMessages);
         }
-      } catch (error: any) {
-        console.error("Error cargando chat:", error.message);
-      } finally {
-        setLoading(false);
+
+        const data = await getMensajesRequest(token, Number(sesionId));
+
+        const formattedMessages = data.map((m: any) => ({
+          id: m.id.toString(),
+          emisor_id: m.emisor_id,
+          text: m.text || m.contenido,
+          created_at: m.created_at
+        }));
+
+        setMessages(formattedMessages);
       }
-    };
-    initChat();
+    } catch (error: any) {
+      console.error("Error cargando chat:", error.message);
+    } finally {
+      if (isFirstLoad) setLoading(false);
+    }
   }, [sesionId]);
+
+  useEffect(() => {
+    cargarMensajes(true);
+
+    const interval = setInterval(() => {
+      cargarMensajes(false);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [cargarMensajes]);
 
   const sendAction = async (texto: string) => {
     try {
       const token = await getToken();
       if (!token) return;
 
+      // Envío al servidor
       await enviarMensajeRequest(token, Number(sesionId), texto);
 
       const newMessage: Message = {
-        id: Date.now().toString(),
+        id: `temp-${Date.now()}`,
         emisor_id: myId,
         text: texto,
         created_at: new Date().toISOString(),
       };
 
       setMessages((prev) => [...prev, newMessage]);
+      
+      cargarMensajes(false);
     } catch (error: any) {
       Alert.alert("Error", "No se pudo enviar la respuesta rápida.");
     }
   };
 
-  const renderMessage = ({ item }: { item: Message }) => {
+const renderMessage = ({ item }: { item: Message }) => {
     const isMine = item.emisor_id === myId;
+
     return (
-      <View style={[styles.messageWrapper, isMine ? styles.userMessageAlign : styles.otherMessageAlign]}>
-        <View style={[styles.messageContainer, isMine && styles.userMessageCard]}>
-          <Text style={[styles.messageText, isMine && { color: '#000' }]}>{item.text}</Text>
-          <Text style={styles.timestamp}>
+      <View style={[
+        styles.messageWrapper, 
+        isMine ? styles.userMessageAlign : styles.otherMessageAlign
+      ]}>
+        <View style={[
+          styles.messageContainer, 
+          isMine ? styles.userMessageCard : styles.otherMessageCard
+        ]}>
+          <Text style={[
+            styles.messageText, 
+            isMine ? styles.userMessageText : styles.otherMessageText
+          ]}>
+            {item.text}
+          </Text>
+          <Text style={[styles.timestamp, isMine && { textAlign: 'right' }]}>
             {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </Text>
         </View>
@@ -103,14 +126,14 @@ export default function MBChat() {
           renderItem={renderMessage}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.messagesList}
+          onContentSizeChange={() => messages.length > 0} 
         />
       )}
 
-      {/* Acciones Rápidas - Sin Picker conflictivo */}
+      {/* Acciones Rápidas */}
       <View style={[styles.actionPanel, { paddingBottom: insets.bottom + 10 }]}>
         <Text style={styles.panelTitle}>Sugerir Acuerdo:</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsContainer}>
-
           <TouchableOpacity style={styles.chip} onPress={() => sendAction('📍 Propongo usar Google Meet / Zoom')}>
             <Ionicons name="videocam-outline" size={18} color={Colors.textLight} />
             <Text style={styles.chipText}>Link Reunión</Text>
@@ -121,26 +144,25 @@ export default function MBChat() {
             <Text style={styles.chipText}>Materiales</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.chip, { backgroundColor: Colors.positiveBg }]} onPress={() => sendAction('✔️ Acepto la propuesta')}>
+          <TouchableOpacity style={[styles.chip, { backgroundColor: '#4CAF50' }]} onPress={() => sendAction('✔️ Sí')}>
             <Ionicons name="checkmark-circle-outline" size={18} color={Colors.textLight} />
             <Text style={styles.chipText}>Aceptar</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.chip, { backgroundColor: Colors.negativeBg }]} onPress={() => sendAction('❌ No puedo en ese horario')}>
+          <TouchableOpacity style={[styles.chip, { backgroundColor: '#F44336' }]} onPress={() => sendAction('❌ No')}>
             <Ionicons name="close-circle-outline" size={18} color={Colors.textLight} />
             <Text style={styles.chipText}>Denegar</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.chip, { backgroundColor: Colors.confirmBg }]} onPress={() => sendAction('✅ ¡Detalles confirmados!')}>
+          <TouchableOpacity style={[styles.chip, { backgroundColor: '#2196F3' }]} onPress={() => sendAction('✅ ¡Detalles confirmados!')}>
             <Ionicons name="checkmark-done-circle-outline" size={18} color={Colors.textLight} />
-            <Text style={styles.chipText}>Confirmar Acuerdo</Text>
+            <Text style={styles.chipText}>Confirmar</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
     </View>
   );
 }
-
 // Estilos Propios
 const styles = StyleSheet.create({
   container: {
@@ -148,65 +170,54 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f2f5'
   },
   //Mensajes
-  messagesList: {
-    padding: 16
+messagesList: {
+    padding: 15,
   },
   messageWrapper: {
-    flexDirection: 'row',
-    marginBottom: 12
+    marginBottom: 12,
+    width: '100%',
   },
   userMessageAlign: {
-    justifyContent: 'flex-end'
+    alignItems: 'flex-end',
   },
   otherMessageAlign: {
-    justifyContent: 'flex-start'
+    alignItems: 'flex-start', 
   },
   messageContainer: {
-    maxWidth: '85%',
+    maxWidth: '80%',
     padding: 12,
-    borderRadius: 15,
-    backgroundColor: Colors.card,
+    borderRadius: 18,
     elevation: 1,
-    shadowColor: Colors.shadow,
+    shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
+  // Estilo para mensajes (Derecha)
   userMessageCard: {
-    backgroundColor: '#e3efff',
-    borderBottomRightRadius: 2
+    backgroundColor: '#DCF8C6', 
+    borderBottomRightRadius: 2, 
   },
-  systemMessage: {
-    backgroundColor: '#eceff1',
-    alignSelf: 'center',
-    width: '95%',
-    borderRadius: 10,
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    borderColor: '#b0bec5',
-    marginVertical: 10
-  },
-  systemText: {
-    textAlign: 'center',
-    fontStyle: 'italic',
-    color: '#607d8b',
-    fontSize: 13
-  },
-  userName: {
-    fontWeight: 'bold',
-    fontSize: 12,
-    color: Colors.primary,
-    marginBottom: 4
+  // Estilo para mensajes (Izquierda)
+  otherMessageCard: {
+    backgroundColor: '#FFFFFF', 
+    borderBottomLeftRadius: 2, 
+    borderWidth: 0.5,
+    borderColor: '#ECECEC',
   },
   messageText: {
     fontSize: 15,
-    color: Colors.textDark,
-    lineHeight: 20
+    lineHeight: 20,
+  },
+  userMessageText: {
+    color: '#000000',
+  },
+  otherMessageText: {
+    color: '#000000',
   },
   timestamp: {
-    fontSize: 9,
-    color: Colors.textLabel,
-    marginTop: 5,
-    textAlign: 'right'
+    fontSize: 10,
+    color: '#8e8e93',
+    marginTop: 4,
   },
   // Panel de acciones
   actionPanel: {

@@ -27,7 +27,7 @@ const createSolicitud = async (data) => {
                 solicitante_id, receptor_id, habilidad_id, 
                 estado_id, modalidad, tokens_recompensa, 
                 nivel, fecha_propuesta
-            ) VALUES (:s, :r, :h, 1, :m, :t, :n, :f)
+            ) VALUES (:s, :r, :h, 1, :m, :t, :n, TO_TIMESTAMP(:f, 'YYYY-MM-DD HH24:MI:SS'))
             RETURNING id INTO :id`,
             {
                 s: data.solicitante_id,
