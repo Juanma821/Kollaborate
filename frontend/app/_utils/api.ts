@@ -403,3 +403,37 @@ export const getTokensRequest = (token: string, filter: string) =>
     method: 'GET',
     token,
   });
+
+export type TransaccionItem = {
+  id: number;
+  monto: number;
+  tipo: string;
+  concepto: string;
+  fecha: string;
+  emisor: string;
+  receptor: string;
+};
+
+export const getSaldoRequest = (token: string) =>
+  request<{ saldo: number; streakDias: number }>('/tokens/saldo', {
+    method: 'GET',
+    token,
+  });
+
+export const getHistorialRequest = (token: string) =>
+  request<TransaccionItem[]>('/tokens/historial', {
+    method: 'GET',
+    token,
+  });
+
+export const loginDiarioRequest = (token: string) =>
+  request<{
+    tokensGanados: number;
+    streakDias: number;
+    bonusStreak: boolean;
+    nuevoSaldo?: number;
+    mensaje: string;
+  }>('/tokens/login-diario', {
+    method: 'POST',
+    token,
+  });

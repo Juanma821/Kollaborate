@@ -51,7 +51,7 @@ export default function Home() {
                 disabled={item.id !== 3}
                 onPress={() => {
                   if (item.id === 3) {
-                    router.push('/profile/translator');
+                    router.navigate('/profile/translator');
                   }
                 }}
                 style={styles.card}
@@ -80,7 +80,7 @@ export default function Home() {
         {/* Accesos rápidos */}
         <View style={styles.accessSection}>
           <View style={styles.column}>
-            <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/skills')}>
+            <TouchableOpacity style={styles.imageButton} onPress={() => router.navigate('/profile/skills')}>
               <ImageBackground
                 source={require('../../assets/images/Skills.png')}
                 style={styles.bgImage}
@@ -93,7 +93,7 @@ export default function Home() {
               </ImageBackground>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/statistics')}>
+            <TouchableOpacity style={styles.imageButton} onPress={() => router.navigate('/profile/statistics')}>
               <ImageBackground
                 source={require('../../assets/images/Statistic.png')}
                 style={styles.bgImage}
@@ -108,7 +108,7 @@ export default function Home() {
           </View>
 
           <View style={styles.column}>
-            <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/token')}>
+            <TouchableOpacity style={styles.imageButton} onPress={() => router.navigate('/profile/token')}>
               <ImageBackground
                 source={require('../../assets/images/Tokens.png')}
                 style={styles.bgImage}
@@ -121,7 +121,7 @@ export default function Home() {
               </ImageBackground>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.imageButton} onPress={() => router.push('/profile/configuration/report')}>
+            <TouchableOpacity style={styles.imageButton} onPress={() => router.navigate('/profile/configuration/report')}>
               <ImageBackground
                 source={require('../../assets/images/Report.png')}
                 style={styles.bgImage}
