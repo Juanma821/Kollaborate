@@ -1,6 +1,6 @@
 import * as React from "react";
 import { router } from 'expo-router';
-import { TouchableOpacity, Dimensions, StyleSheet, Text, View, Image, ImageBackground, ScrollView } from "react-native";
+import { TouchableOpacity, Dimensions, StyleSheet, Text, View, Image, ImageBackground, ScrollView, Alert } from "react-native";
 
 import { Colors } from '../../assets/images/constants/Colors';
 import { globalStyles } from '../../assets/images/constants/globalStyles';
@@ -29,6 +29,13 @@ export default function Home() {
     });
   };
 
+  const navegarA = (ruta: any) => {
+    router.replace('/(tabs)/profile');
+    setTimeout(() => {
+      router.push(ruta);
+    }, 100);
+  };
+
   return (
     <View style={globalStyles.containerApp}>
       <ScrollView
@@ -48,10 +55,20 @@ export default function Home() {
             renderItem={({ item }) => (
               <TouchableOpacity
                 activeOpacity={0.9}
-                disabled={item.id !== 3}
+                disabled={item.id === 1}
                 onPress={() => {
+                  if (item.id === 2) {
+                    Alert.alert(
+                      '🔥 ¡Gana tokens diario!',
+                      'Ingresa cada día para acumular tokens.\n\n🎁 Login diario: +10 tokens\n🔥 Streak 7 días: +20 tokens extra\n\n¡No pierdas tu racha!',
+                      [
+                        { text: 'Ver mis tokens', onPress: () => navegarA('/(tabs)/profile/token') },
+                        { text: 'Cerrar', style: 'cancel' }
+                      ]
+                    );
+                  }
                   if (item.id === 3) {
-                    router.navigate('/profile/translator');
+                    navegarA('/(tabs)/profile/translator');
                   }
                 }}
                 style={styles.card}
@@ -80,7 +97,7 @@ export default function Home() {
         {/* Accesos rápidos */}
         <View style={styles.accessSection}>
           <View style={styles.column}>
-            <TouchableOpacity style={styles.imageButton} onPress={() => router.navigate('/profile/skills')}>
+            <TouchableOpacity style={styles.imageButton} onPress={() => navegarA('/(tabs)/profile/skills')}>
               <ImageBackground
                 source={require('../../assets/images/Skills.png')}
                 style={styles.bgImage}
@@ -93,7 +110,7 @@ export default function Home() {
               </ImageBackground>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.imageButton} onPress={() => router.navigate('/profile/statistics')}>
+            <TouchableOpacity style={styles.imageButton} onPress={() => navegarA('/(tabs)/profile/statistics')}>
               <ImageBackground
                 source={require('../../assets/images/Statistic.png')}
                 style={styles.bgImage}
@@ -101,14 +118,14 @@ export default function Home() {
                 resizeMode="cover"
               >
                 <View style={styles.overlay}>
-                  <Text style={[styles.buttonText, { fontSize: 16, }]}>Estadísticas</Text>
+                  <Text style={[styles.buttonText, { fontSize: 16 }]}>Estadísticas</Text>
                 </View>
               </ImageBackground>
             </TouchableOpacity>
           </View>
 
           <View style={styles.column}>
-            <TouchableOpacity style={styles.imageButton} onPress={() => router.navigate('/profile/token')}>
+            <TouchableOpacity style={styles.imageButton} onPress={() => navegarA('/(tabs)/profile/token')}>
               <ImageBackground
                 source={require('../../assets/images/Tokens.png')}
                 style={styles.bgImage}
@@ -121,7 +138,7 @@ export default function Home() {
               </ImageBackground>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.imageButton} onPress={() => router.navigate('/profile/configuration/report')}>
+            <TouchableOpacity style={styles.imageButton} onPress={() => navegarA('/(tabs)/profile/configuration/report')}>
               <ImageBackground
                 source={require('../../assets/images/Report.png')}
                 style={styles.bgImage}
@@ -144,7 +161,6 @@ const styles = StyleSheet.create({
   carouselContainer: {
     alignItems: 'center',
     backgroundColor: Colors.appBg,
-
     paddingBottom: 20,
   },
   card: {

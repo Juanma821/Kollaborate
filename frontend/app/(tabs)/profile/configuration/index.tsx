@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import { StyleSheet, Text, View, Switch, ScrollView, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
 
@@ -30,6 +30,21 @@ export default function Configuration() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  // 👈 Cargar preferencias guardadas al iniciar
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const darkMode = await SecureStore.getItemAsync('darkMode');
+        const notifications = await SecureStore.getItemAsync('notifications');
+        if (darkMode !== null) setIsDarkMode(JSON.parse(darkMode));
+        if (notifications !== null) setIsNotificationsEnabled(JSON.parse(notifications));
+      } catch (error) {
+        console.error('Error cargando preferencias:', error);
+      }
+    };
+    loadPreferences();
+  }, []);
 
   const toggleDarkMode = async (value: boolean) => {
     setIsDarkMode(value);
@@ -94,14 +109,8 @@ export default function Configuration() {
 
     try {
       const token = await getToken();
-
-      if (!token) {
-        setErrorMessage('No hay sesion activa.');
-        return;
-      }
-
+      if (!token) { setErrorMessage('No hay sesion activa.'); return; }
       const data = await changePasswordRequest(token, currentPassword, newPassword);
-
       Alert.alert('Exito', data.message || 'Tu contraseña ha sido actualizada correctamente.');
       setModalVisible(false);
       resetModal();
@@ -166,7 +175,7 @@ export default function Configuration() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={[globalStyles.modalOverlay,{alignItems: 'center',}]}>
+        <View style={[globalStyles.modalOverlay, { alignItems: 'center' }]}>
           <View style={[styles.modalView, { backgroundColor: theme.surface }]}>
             <Text style={[globalStyles.modalTitle, { textAlign: 'center', marginBottom: 20, color: theme.text }]}>
               Cambiar contraseña

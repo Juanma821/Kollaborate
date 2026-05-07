@@ -24,15 +24,9 @@ export default function Profile() {
       const loadUser = async () => {
         try {
           setLoading(true);
-
           const storedUser = await getStoredUser();
           const token = await getToken();
-
-          if (!storedUser || !token) {
-            setUser(null);
-            return;
-          }
-
+          if (!storedUser || !token) { setUser(null); return; }
           const profile = await getUserProfileRequest(token, storedUser.id);
           setUser(profile);
         } catch (error) {
@@ -42,19 +36,17 @@ export default function Profile() {
           setLoading(false);
         }
       };
-
       loadUser();
     }, [])
   );
 
+  const navegarA = (ruta: any) => {
+    router.push(ruta);
+  };
+
   if (loading) {
     return (
-      <View
-        style={[
-          globalStyles.containerApp,
-          { paddingTop: insets.top, justifyContent: 'center', alignItems: 'center' }
-        ]}
-      >
+      <View style={[globalStyles.containerApp, { paddingTop: insets.top, justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
@@ -69,7 +61,6 @@ export default function Profile() {
           <Text style={globalStyles.institution}>
             {user?.institucion_nombre || user?.email || 'Sin datos'}
           </Text>
-
           <View style={globalStyles.rankContainer}>
             <Ionicons name="ribbon-sharp" size={24} color="#FFD700" />
             <Text style={globalStyles.rankText}>{user?.rol || 'estudiante'}</Text>
@@ -91,9 +82,7 @@ export default function Profile() {
             <View style={styles.tagWrapper}>
               {user?.ofrezco?.length ? (
                 user.ofrezco.map((skill) => (
-                  <Text key={skill.id} style={styles.skillTag}>
-                    {skill.nombre}
-                  </Text>
+                  <Text key={skill.id} style={styles.skillTag}>{skill.nombre}</Text>
                 ))
               ) : (
                 <Text style={styles.emptyText}>Sin habilidades</Text>
@@ -108,9 +97,7 @@ export default function Profile() {
             <View style={styles.tagWrapper}>
               {user?.busco?.length ? (
                 user.busco.map((skill) => (
-                  <Text key={skill.id} style={styles.skillTag}>
-                    {skill.nombre}
-                  </Text>
+                  <Text key={skill.id} style={styles.skillTag}>{skill.nombre}</Text>
                 ))
               ) : (
                 <Text style={styles.emptyText}>Sin habilidades</Text>
@@ -121,58 +108,37 @@ export default function Profile() {
       </View>
 
       <View style={globalStyles.contentSectionA}>
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => router.push('/(tabs)/profile/configuration')}
-        >
+        <TouchableOpacity style={styles.iconButton} onPress={() => navegarA('/(tabs)/profile/configuration')}>
           <Ionicons name="settings-sharp" size={28} color="black" />
           <Text>Ajustes</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => router.push('/(tabs)/profile/skills')}
-        >
+        <TouchableOpacity style={styles.iconButton} onPress={() => navegarA('/(tabs)/profile/skills')}>
           <Ionicons name="clipboard-sharp" size={28} color="black" />
           <Text>Habilidades</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => router.push('/(tabs)/profile/editprofile')}
-        >
+        <TouchableOpacity style={styles.iconButton} onPress={() => navegarA('/(tabs)/profile/editprofile')}>
           <Ionicons name="create-sharp" size={28} color="black" />
           <Text>Editar Perfil</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => router.push('/(tabs)/profile/statistics')}
-        >
+        <TouchableOpacity style={styles.iconButton} onPress={() => navegarA('/(tabs)/profile/statistics')}>
           <Ionicons name="bar-chart-sharp" size={28} color="black" />
           <Text>Estadisticas</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => router.push('/(tabs)/profile/record')}
-        >
+        <TouchableOpacity style={styles.iconButton} onPress={() => navegarA('/(tabs)/profile/record')}>
           <Fontisto name="history" size={28} color="black" />
           <Text>Historial</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => router.push('/(tabs)/profile/token')}
-        >
+        <TouchableOpacity style={styles.iconButton} onPress={() => navegarA('/(tabs)/profile/token')}>
           <FontAwesome6 name="coins" size={28} color="black" />
           <Text>Tokens</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => router.push('/(tabs)/profile/translator')}
-        >
+        <TouchableOpacity style={styles.iconButton} onPress={() => navegarA('/(tabs)/profile/translator')}>
           <Ionicons name="language" size={28} color="black" />
           <Text>Traductor</Text>
         </TouchableOpacity>
