@@ -19,7 +19,6 @@ const getSaldo = async (userId) => {
             { id: userId },
             { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
         );
-        console.log('getSaldo result:', JSON.stringify(result.rows[0]));
         return {
             saldo: result.rows[0]?.SALDO_TOKENS || 0,
             streakDias: result.rows[0]?.STREAK_DIAS || 0
@@ -67,22 +66,22 @@ const loginDiario = async (userId) => {
         connection = await db.getConnection();
 
         const result = await connection.execute(
-            `SELECT ultimo_login, streak_dias, saldo_tokens FROM usuarios WHERE id = :id`,
+            `SELECT streak_dias, saldo_tokens,
+                    TO_CHAR(TRUNC(SYSDATE), 'YYYY-MM-DD') AS hoy_oracle,
+                    TO_CHAR(TRUNC(ultimo_login), 'YYYY-MM-DD') AS ultimo_login_str
+             FROM usuarios WHERE id = :id`,
             { id: userId },
             { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
         );
 
         const user = result.rows[0];
-        const hoy = new Date();
-        const ultimoLogin = user.ULTIMO_LOGIN ? new Date(user.ULTIMO_LOGIN) : null;
 
-        // Comparar solo fecha sin hora para evitar problemas de timezone
-        const hoyStr = hoy.toISOString().split('T')[0];
-        const ultimoLoginStr = ultimoLogin ? ultimoLogin.toISOString().split('T')[0] : null;
-
+        // Comparar fechas directamente desde Oracle — misma timezone
+        const hoyStr = user.HOY_ORACLE;
+        const ultimoLoginStr = user.ULTIMO_LOGIN_STR || null;
         const yaLogueoHoy = hoyStr === ultimoLoginStr;
 
-        console.log('hoyStr:', hoyStr);
+        console.log('hoyStr Oracle:', hoyStr);
         console.log('ultimoLoginStr:', ultimoLoginStr);
         console.log('yaLogueoHoy:', yaLogueoHoy);
 
@@ -96,6 +95,7 @@ const loginDiario = async (userId) => {
         }
 
         // Calcular streak
+        const hoy = new Date(hoyStr);
         const ayer = new Date(hoy);
         ayer.setDate(ayer.getDate() - 1);
         const ayerStr = ayer.toISOString().split('T')[0];
@@ -105,7 +105,6 @@ const loginDiario = async (userId) => {
         let nuevoStreak = loginFueAyer ? (user.STREAK_DIAS || 0) + 1 : 1;
         if (nuevoStreak > 7) nuevoStreak = 1;
 
-        // Calcular tokens
         let tokensGanados = 10;
         let bonusStreak = false;
 
@@ -116,17 +115,16 @@ const loginDiario = async (userId) => {
 
         const nuevoSaldo = (user.SALDO_TOKENS || 0) + tokensGanados;
 
-        // Actualizar usuario
+        // Guardar con TRUNC(SYSDATE) para evitar problemas de timezone
         await connection.execute(
-            `UPDATE usuarios SET 
+            `UPDATE usuarios SET
                 saldo_tokens = :saldo,
-                ultimo_login = SYSDATE,
+                ultimo_login = TRUNC(SYSDATE),
                 streak_dias = :streak
              WHERE id = :id`,
             { saldo: nuevoSaldo, streak: nuevoStreak, id: userId }
         );
 
-        // Registrar transacción
         await registrarTransaccion(connection, {
             emisor_id: userId,
             receptor_id: userId,
