@@ -12,7 +12,8 @@ const sesionesRoutes = require('./routes/sesiones.routes');
 const statisticsRoutes = require('./routes/statistics.routes');
 const recordRoutes = require('./routes/record.routes');
 const tokensRoutes = require('./routes/tokens.routes');
-
+const resenasRoutes = require('./routes/resenas.routes');
+const incidenciasRoutes = require('./routes/incidencias.routes');
 app.use(cors());
 app.use(express.json());
 
@@ -41,5 +42,9 @@ app.use('/api/statistics', statisticsRoutes);
 app.use('/api/records', recordRoutes);
 
 app.use('/api/tokens', tokensRoutes);
+
+app.use('/api/resenas', resenasRoutes);
+
+app.use('/api/incidencias', incidenciasRoutes);
 
 module.exports = app;

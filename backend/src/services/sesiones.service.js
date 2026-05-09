@@ -1,22 +1,27 @@
 const db = require('../db');
 
-const getSesiones = async (userId) => {
+const getSesiones = async (userId, estados = [4]) => { 
   let connection;
   try {
     connection = await db.getConnection();
+    const estadoFilter = (estados && estados.length > 0) 
+      ? `AND se.estado_id IN (${estados.join(',')})` 
+      : '';
 
     const result = await connection.execute(
       `SELECT se.id, se.fecha_programada, se.estado_id,
               h.nombre AS habilidad,
               u1.nombre AS solicitante,
-              u2.nombre AS receptor
+              u2.nombre AS receptor,
+              so.solicitante_id AS sol_id,
+              so.receptor_id AS rec_id
        FROM sesiones se
        JOIN solicitudes so ON so.id = se.solicitud_id
        JOIN habilidades h  ON h.id = so.habilidad_id
        JOIN usuarios u1    ON u1.id = so.solicitante_id
        JOIN usuarios u2    ON u2.id = so.receptor_id
        WHERE (so.solicitante_id = :id OR so.receptor_id = :id)
-       AND se.estado_id = 4
+       ${estadoFilter}
        ORDER BY se.fecha_programada ASC`,
       { id: userId },
       { outFormat: db.oracledb.OUT_FORMAT_OBJECT }
@@ -29,6 +34,8 @@ const getSesiones = async (userId) => {
       habilidad: row.HABILIDAD,
       solicitante: row.SOLICITANTE,
       receptor: row.RECEPTOR,
+      solicitante_id: row.SOL_ID,
+      receptor_id: row.REC_ID,
     }));
 
   } finally {

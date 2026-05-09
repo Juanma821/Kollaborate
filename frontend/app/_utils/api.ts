@@ -437,3 +437,96 @@ export const loginDiarioRequest = (token: string) =>
     method: 'POST',
     token,
   });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //Incidencias
+export const getMisSesionesRequest = async (token: string) => {
+    try {
+        // Usamos la ruta '/' que ya tienes definida en sesiones.routes.js
+        const response = await fetch(`${API_BASE_URL}/sesiones`, { 
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const resData = await response.json();
+
+        if (!response.ok) {
+            throw new Error(resData.error || 'Error al obtener sesiones');
+        }
+
+        return resData; 
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const createReporteRequest = async (token: string, data: {
+    sesion_id: number;
+    tipo_incidencia: string;
+    descripcion: string;
+    prioridad?: string;
+}) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/incidencias`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+
+        const resData = await response.json();
+
+        if (!response.ok) {
+            throw new Error(resData.error || 'Error al enviar el reporte');
+        }
+
+        return resData;
+    } catch (error) {
+        throw error;
+    }
+};

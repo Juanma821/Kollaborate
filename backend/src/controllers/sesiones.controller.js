@@ -2,7 +2,7 @@ const sesionesService = require('../services/sesiones.service');
 
 const getSesiones = async (req, res) => {
   try {
-    const result = await sesionesService.getSesiones(req.user.id);
+    const result = await sesionesService.getSesiones(req.user.id, [4, 5]); 
     res.json(result);
   } catch (error) {
     console.error(error);
