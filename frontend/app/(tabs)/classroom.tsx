@@ -1,13 +1,20 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, ActivityIndicator, Modal, Alert } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity, ScrollView,
+  Linking, ActivityIndicator, Modal, Alert, TextInput
+} from 'react-native';
 import { Colors } from '../../assets/images/constants/Colors';
 import { globalStyles } from '../../assets/images/constants/globalStyles';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
-import { getSesionesRequest, finalizarSesionRequest, cancelarSesionRequest, type SesionItem } from '../_utils/api';
+import {
+  getSesionesRequest, finalizarSesionRequest, cancelarSesionRequest,
+  crearResenaRequest, type SesionItem
+} from '../_utils/api';
 import { getToken } from '../_utils/authStorage';
+import { getStoredUser } from '../_utils/authStorage';
 
 LocaleConfig.locales['es'] = {
   monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
@@ -24,6 +31,13 @@ export default function Classroom() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSesion, setSelectedSesion] = useState<SesionItem | null>(null);
 
+  // Modal reseña
+  const [resenaVisible, setResenaVisible] = useState(false);
+  const [calificacion, setCalificacion] = useState(5);
+  const [comentario, setComentario] = useState('');
+  const [sesionFinalizada, setSesionFinalizada] = useState<SesionItem | null>(null);
+  const [evaluadoId, setEvaluadoId] = useState<number | null>(null);
+
   useFocusEffect(
     useCallback(() => {
       loadSesiones();
@@ -36,6 +50,7 @@ export default function Classroom() {
       const token = await getToken();
       if (!token) return;
       const data = await getSesionesRequest(token);
+      console.log('PRIMERA SESION:', JSON.stringify(data[0]));
       setSesiones(data ?? []);
     } catch (error) {
       console.error('Error cargando sesiones:', error);
@@ -48,9 +63,20 @@ export default function Classroom() {
     try {
       const token = await getToken();
       if (!token) return;
+
+      // Guardar sesión ANTES de finalizar porque después desaparece del listado
+      const sesion = sesiones.find(s => s.id === id);
+      console.log('sesion antes de finalizar:', JSON.stringify(sesion));
+
       const result = await finalizarSesionRequest(token, id);
       Alert.alert('Éxito', result.message);
       setModalVisible(false);
+
+      if (sesion) {
+        setSesionFinalizada(sesion);
+        setResenaVisible(true);
+      }
+
       await loadSesiones();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al finalizar';
@@ -72,9 +98,47 @@ export default function Classroom() {
     }
   };
 
+  const handleEnviarResena = async () => {
+    if (!sesionFinalizada) return;
+    try {
+      const token = await getToken();
+      const storedUser = await getStoredUser();
+      if (!token || !storedUser) return;
+
+      // Determinar evaluado — el que no soy yo
+      // El salón muestra solicitante y receptor como nombres, necesitamos los IDs
+      // Los traemos del endpoint de sesiones que ya tiene solicitante_id y receptor_id
+      const sesionCompleta = sesionFinalizada as any;
+
+      console.log('sesionFinalizada:', JSON.stringify(sesionFinalizada));
+      console.log('storedUser.id:', storedUser.id);
+
+      const evaluado = sesionCompleta.solicitante_id === storedUser.id
+        ? sesionCompleta.receptor_id
+        : sesionCompleta.solicitante_id;
+
+      console.log('evaluado calculado:', evaluado);
+
+      await crearResenaRequest(token, {
+        sesion_id: sesionFinalizada.id,
+        evaluado_id: evaluado,
+        calificacion,
+        comentario,
+      });
+
+      Alert.alert('✅ Reseña enviada', 'Gracias por tu feedback');
+      setResenaVisible(false);
+      setComentario('');
+      setCalificacion(5);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al enviar reseña';
+      Alert.alert('Error', message);
+    }
+  };
+
   const markedDates = sesiones.reduce((acc, sesion) => {
     const fecha = new Date(sesion.fecha_programada).toISOString().split('T')[0];
-    acc[fecha] = { marked: true, dotColor: Colors.TextprimaryDark, activeOpacity: 0 };
+    acc[fecha] = { marked: true, dotColor: '#ff743dff', activeOpacity: 0 };
     return acc;
   }, {} as Record<string, any>);
 
@@ -94,26 +158,42 @@ export default function Classroom() {
 
   const estadoColor = (estadoId: number) => {
     if (estadoId === 4) return Colors.BorderColor;
-    if (estadoId === 5) return Colors.success;
-    if (estadoId === 6) return Colors.error;
-    return Colors.textMuted;
+    if (estadoId === 5) return '#4caf50';
+    if (estadoId === 6) return '#f44336';
+    return '#ccc';
+  };
+
+  const renderEstrellas = (cantidad: number, onPress?: (n: number) => void) => {
+    return (
+      <View style={{ flexDirection: 'row', gap: 6 }}>
+        {[1, 2, 3, 4, 5].map(n => (
+          <TouchableOpacity key={n} onPress={() => onPress && onPress(n)} disabled={!onPress}>
+            <Ionicons
+              name={n <= cantidad ? 'star' : 'star-outline'}
+              size={28}
+              color="#FFD700"
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
   };
 
   return (
     <View style={[globalStyles.containerApp, { paddingTop: insets.top }]}>
-      <Text style={[globalStyles.headerTitle, {color: Colors.TextprimaryDark}]}>Mi Agenda</Text>
+      <Text style={globalStyles.headerTitle}>Mi Agenda</Text>
 
       <View style={styles.calendarContainer}>
         <Calendar
           onDayPress={day => setSelectedDate(day.dateString)}
           markedDates={{
             ...markedDates,
-            [selectedDate]: { selected: true, disableTouchEvent: true, selectedColor: Colors.primary }
+            [selectedDate]: { selected: true, disableTouchEvent: true, selectedColor: '#ff743dff' }
           }}
           theme={{
-            todayTextColor: Colors.Textprimary,
-            arrowColor: Colors.primary,
-            dotColor: Colors.primary,
+            todayTextColor: '#ff743dff',
+            arrowColor: '#ff743dff',
+            dotColor: '#ff743dff',
           }}
         />
       </View>
@@ -125,8 +205,8 @@ export default function Classroom() {
 
         {!loading && sesiones.length === 0 && (
           <View style={{ alignItems: 'center', marginTop: 30 }}>
-            <Ionicons name="calendar-outline" size={60} color={Colors.textMuted} />
-            <Text style={{ color: Colors.textLabel, marginTop: 10 }}>No tienes sesiones agendadas</Text>
+            <Ionicons name="calendar-outline" size={60} color="#ccc" />
+            <Text style={{ color: '#999', marginTop: 10 }}>No tenés sesiones agendadas</Text>
           </View>
         )}
 
@@ -146,15 +226,16 @@ export default function Classroom() {
                 {estadoTexto(sesion.estado_id)}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
+            <Ionicons name="chevron-forward" size={20} color="#ccc" />
           </TouchableOpacity>
         ))}
       </ScrollView>
 
+      {/* Modal sesión */}
       <Modal visible={modalVisible} transparent animationType="fade">
-        <View style={[globalStyles.modalOverlay, { alignItems: 'center'}]}>
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={[globalStyles.modalTitle,{marginBottom: 15}]}>Sesión</Text>
+            <Text style={styles.modalTitle}>Sesión</Text>
 
             {selectedSesion && (
               <>
@@ -170,29 +251,29 @@ export default function Classroom() {
                 {selectedSesion.estado_id === 4 && (
                   <>
                     <TouchableOpacity
-                      style={[globalStyles.modalButton, { backgroundColor: '#00796b', flexDirection: 'row', justifyContent: 'center'  }]}
+                      style={[styles.modalButton, { backgroundColor: '#00796b' }]}
                       onPress={() => Linking.openURL('https://meet.google.com')}
                     >
                       <Ionicons name="videocam" size={18} color="#fff" />
-                      <Text style={globalStyles.modalButtonText}>  Unirse a Meet</Text>
+                      <Text style={styles.modalButtonText}>  Unirse a Meet</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[globalStyles.modalButton, { backgroundColor: Colors.positiveBg,  flexDirection: 'row', justifyContent: 'center'  }]}
+                      style={[styles.modalButton, { backgroundColor: '#4caf50' }]}
                       onPress={() => Alert.alert(
                         'Finalizar sesión',
-                        'Se transferirán los tokens correspondientes al receptor. ¿Confirmás?',
+                        'Se transferirán 10 tokens al receptor. ¿Confirmás?',
                         [
                           { text: 'Cancelar', style: 'cancel' },
                           { text: 'Confirmar', onPress: () => handleFinalizar(selectedSesion.id) }
                         ]
                       )}
                     >
-                      <Text style={globalStyles.modalButtonText}>✓ Finalizar sesión</Text>
+                      <Text style={styles.modalButtonText}>✓ Finalizar sesión (-10 tokens)</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[globalStyles.modalButton, { backgroundColor: Colors.negativeBg,  flexDirection: 'row', justifyContent: 'center'  }]}
+                      style={[styles.modalButton, { backgroundColor: '#f44336' }]}
                       onPress={() => Alert.alert(
                         'Cancelar sesión',
                         '¿Estás seguro? No se transferirán tokens.',
@@ -202,19 +283,57 @@ export default function Classroom() {
                         ]
                       )}
                     >
-                      <Text style={globalStyles.modalButtonText}>✕ Cancelar sesión</Text>
+                      <Text style={styles.modalButtonText}>✕ Cancelar sesión</Text>
                     </TouchableOpacity>
                   </>
                 )}
 
                 <TouchableOpacity
-                  style={[globalStyles.modalButton, { backgroundColor: Colors.grayBg, marginTop: 5, flexDirection: 'row', justifyContent: 'center' }]}
+                  style={[styles.modalButton, { backgroundColor: '#999', marginTop: 5 }]}
                   onPress={() => setModalVisible(false)}
                 >
-                  <Text style={globalStyles.modalButtonText}>Cerrar</Text>
+                  <Text style={styles.modalButtonText}>Cerrar</Text>
                 </TouchableOpacity>
               </>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal reseña */}
+      <Modal visible={resenaVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>⭐ Dejar reseña</Text>
+            <Text style={styles.modalText}>¿Cómo fue tu experiencia?</Text>
+
+            <View style={{ marginVertical: 10 }}>
+              {renderEstrellas(calificacion, setCalificacion)}
+            </View>
+
+            <TextInput
+              style={styles.textInput}
+              placeholder="Escribe un comentario (opcional)..."
+              placeholderTextColor="#aaa"
+              value={comentario}
+              onChangeText={setComentario}
+              multiline
+              maxLength={500}
+            />
+
+            <TouchableOpacity
+              style={[styles.modalButton, { backgroundColor: Colors.primary }]}
+              onPress={handleEnviarResena}
+            >
+              <Text style={styles.modalButtonText}>Enviar reseña</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.modalButton, { backgroundColor: '#999' }]}
+              onPress={() => { setResenaVisible(false); setComentario(''); setCalificacion(5); }}
+            >
+              <Text style={styles.modalButtonText}>Omitir</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -230,18 +349,10 @@ const styles = StyleSheet.create({
     elevation: 4,
     paddingBottom: 10
   },
-  detailsContainer: { 
-    flex: 1, 
-    padding: 20 
-  },
-  sectionTitle: { 
-    fontSize: 18, 
-    fontWeight: '600', 
-    marginBottom: 15, 
-    color: Colors.TextprimaryDark 
-  },
+  detailsContainer: { flex: 1, padding: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 15, color: Colors.textMuted },
   sessionCard: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.whiteBg,
     borderRadius: 15,
     padding: 20,
     flexDirection: 'row',
@@ -252,20 +363,14 @@ const styles = StyleSheet.create({
     borderLeftColor: Colors.BorderColor
   },
   sessionInfo: { flex: 1 },
-  skillName: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    color: Colors.textDark 
-  },
-  sessionTime: { 
-    fontSize: 13, 
-    color: Colors.textDark, 
-    marginTop: 5 
-  },
-  estadoBadge: { 
-    fontSize: 12, 
-    fontWeight: '600', 
-    marginTop: 4 
+  skillName: { fontSize: 16, fontWeight: 'bold', color: Colors.textDark },
+  sessionTime: { fontSize: 13, color: '#888', marginTop: 5 },
+  estadoBadge: { fontSize: 12, fontWeight: '600', marginTop: 4 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   modalContent: {
     width: '85%',
@@ -274,9 +379,28 @@ const styles = StyleSheet.create({
     padding: 25,
     alignItems: 'center'
   },
-  modalText: { 
-    fontSize: 15, 
-    marginBottom: 8, 
-    textAlign: 'center' 
+  modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15 },
+  modalText: { fontSize: 15, marginBottom: 8, textAlign: 'center' },
+  modalButton: {
+    width: '100%',
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'center'
+  },
+  modalButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+  textInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 14,
+    color: '#333',
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 10,
   },
 });

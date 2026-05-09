@@ -9,7 +9,9 @@ const getSesiones = async (userId) => {
       `SELECT se.id, se.fecha_programada, se.estado_id,
               h.nombre AS habilidad,
               u1.nombre AS solicitante,
-              u2.nombre AS receptor
+              u2.nombre AS receptor,
+              so.solicitante_id AS sol_id,
+              so.receptor_id AS rec_id
        FROM sesiones se
        JOIN solicitudes so ON so.id = se.solicitud_id
        JOIN habilidades h  ON h.id = so.habilidad_id
@@ -29,6 +31,8 @@ const getSesiones = async (userId) => {
       habilidad: row.HABILIDAD,
       solicitante: row.SOLICITANTE,
       receptor: row.RECEPTOR,
+      solicitante_id: row.SOL_ID,
+      receptor_id: row.REC_ID,
     }));
 
   } finally {
