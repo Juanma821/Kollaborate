@@ -140,7 +140,7 @@ Los tokens son la moneda interna de Kollaborate:
 
 ##  Seguridad
 
-- Autenticación con JWT (expira en 5 horas)
+- Autenticación con JWT 
 - Contraseñas hasheadas con bcrypt
 - Validación de inputs en backend
 - Token almacenado de forma segura con Expo SecureStore
@@ -149,6 +149,7 @@ Los tokens son la moneda interna de Kollaborate:
 
 ##  Estructura del proyecto
 
+```plaintext
 kollaborate/
 ├── backend/
 │   └── src/
@@ -160,13 +161,14 @@ kollaborate/
 │       ├── app.js
 │       └── server.js
 └── frontend/
-└── app/
-├── (tabs)/
-│   ├── home/
-│   ├── search/
-│   ├── mailbox/
-│   ├── classroom/
-│   └── profile/
-└── _utils/
-├── api.ts
-└── authStorage.ts
+    └── app/
+        ├── (tabs)/
+        │   ├── home/
+        │   ├── search/
+        │   ├── mailbox/
+        │   ├── classroom/
+        │   └── profile/
+        └── _utils/
+            ├── api.ts
+            └── authStorage.ts
+```
