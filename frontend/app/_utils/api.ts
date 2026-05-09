@@ -148,6 +148,8 @@ export type UserProfile = {
   institucion_id?: number | null;
   institucion_nombre?: string | null;
   fecha_nacimiento?: string | null;
+  reputacion_promedio?: number | null;
+  reputacion?: number | null;
   ofrezco?: { id: number; nombre: string }[];
   busco?: { id: number; nombre: string }[];
 };
@@ -339,6 +341,8 @@ export type SesionItem = {
   habilidad: string;
   solicitante: string;
   receptor: string;
+  solicitante_id: number;
+  receptor_id: number;
 };
 
 export const getSesionesRequest = (token: string) =>
@@ -438,46 +442,36 @@ export const loginDiarioRequest = (token: string) =>
     token,
   });
 
+export type ResenaItem = {
+  id: number;
+  calificacion: number;
+  comentario: string;
+  fecha: string;
+  autor: string;
+  autor_alias: string;
+};
 
+export const crearResenaRequest = (token: string, payload: {
+  sesion_id: number;
+  evaluado_id: number;
+  calificacion: number;
+  comentario: string;
+}) =>
+  request<{ id: number; message: string }>('/resenas', {
+    method: 'POST',
+    token,
+    body: payload,
+  });
 
+export const getResenasByUsuarioRequest = (userId: number) =>
+  request<ResenaItem[]>(`/resenas/usuario/${userId}`, {
+    method: 'GET',
+  });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export const getPromedioByUsuarioRequest = (userId: number) =>
+  request<{ promedio: number }>(`/resenas/promedio/${userId}`, {
+    method: 'GET',
+  });
 
     //Incidencias
 export const getMisSesionesRequest = async (token: string) => {

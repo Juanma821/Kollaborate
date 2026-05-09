@@ -14,6 +14,7 @@ const recordRoutes = require('./routes/record.routes');
 const tokensRoutes = require('./routes/tokens.routes');
 const resenasRoutes = require('./routes/resenas.routes');
 const incidenciasRoutes = require('./routes/incidencias.routes');
+
 app.use(cors());
 app.use(express.json());
 
