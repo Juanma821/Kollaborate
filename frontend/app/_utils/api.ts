@@ -467,10 +467,9 @@ export const getPromedioByUsuarioRequest = (userId: number) =>
     method: 'GET',
   });
 
-    //Incidencias
+  //Incidencias
 export const getMisSesionesRequest = async (token: string) => {
     try {
-        // Usamos la ruta '/' que ya tienes definida en sesiones.routes.js
         const response = await fetch(`${API_BASE_URL}/sesiones`, { 
             method: 'GET',
             headers: {
