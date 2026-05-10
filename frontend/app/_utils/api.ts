@@ -402,12 +402,6 @@ export const getHistoryRequest = (token: string, filter: 'day' | 'month' | 'year
   });
 
   //Historia de Tokens
-export const getTokensRequest = (token: string, filter: string) =>
-  request<{ balance: number; history: any[] }>(`/tokens/wallet?filter=${filter}`, {
-    method: 'GET',
-    token,
-  });
-
 export type TransaccionItem = {
   id: number;
   monto: number;

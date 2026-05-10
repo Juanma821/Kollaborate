@@ -74,9 +74,13 @@ export default function Token() {
     }
   };
 
-  const historialFiltrado = historial.filter(item =>
-    selectedTab === 'received' ? item.tipo === 'ingreso' : item.tipo === 'egreso'
-  );
+const historialFiltrado = historial.filter(item => {
+  const tipoNormalizado = item.tipo?.toLowerCase();
+  
+  return selectedTab === 'received' 
+    ? tipoNormalizado === 'ingreso' 
+    : tipoNormalizado === 'egreso';
+});
 
   const formatFecha = (fechaStr: string) => {
     const fecha = new Date(fechaStr);

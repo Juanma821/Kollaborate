@@ -48,7 +48,7 @@ const getHistorial = async (userId) => {
         return result.rows.map(row => ({
             id: row.ID,
             monto: row.MONTO,
-            tipo: row.TIPO,
+            tipo: row.TIPO ? row.TIPO.toLowerCase() : '',
             concepto: row.CONCEPTO,
             fecha: row.FECHA,
             emisor: row.EMISOR,
